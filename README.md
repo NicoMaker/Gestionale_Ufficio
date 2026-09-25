@@ -90,15 +90,15 @@ tabellare e il suo form di inserimento — senza scrivere altro codice.
 ### Tipi di campo supportati
 
 | Tipo       | Descrizione                                              |
-|------------|-----------------------------------------------------------|
-| `text`     | Testo su singola riga                                     |
-| `textarea` | Testo multi-riga                                           |
-| `number`   | Numero (anche decimale)                                    |
-| `date`     | Data                                                        |
-| `datetime` | Data e ora, gestita automaticamente                         |
-| `boolean`  | Checkbox Sì/No                                              |
-| `select`   | Menu a tendina con valori fissi                              |
-| `fk`       | Riferimento a un'altra tabella (menu a tendina dinamico)     |
+| ---------- | -------------------------------------------------------- |
+| `text`     | Testo su singola riga                                    |
+| `textarea` | Testo multi-riga                                         |
+| `number`   | Numero (anche decimale)                                  |
+| `date`     | Data                                                     |
+| `datetime` | Data e ora, gestita automaticamente                      |
+| `boolean`  | Checkbox Sì/No                                           |
+| `select`   | Menu a tendina con valori fissi                          |
+| `fk`       | Riferimento a un'altra tabella (menu a tendina dinamico) |
 
 ## Note
 
