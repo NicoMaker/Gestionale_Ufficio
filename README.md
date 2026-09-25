@@ -24,7 +24,7 @@ gestionale/
 ├── db/
 │   ├── schema.js            # DEFINIZIONE CENTRALE delle 50 tabelle (campi, tipi, relazioni)
 │   ├── init.js               # crea il database SQLite a partire dallo schema
-│   └── gestionale.sqlite3    # file del database (creato al primo avvio)
+│   └── gestionale.db    # file del database (creato al primo avvio)
 ├── routes/
 │   └── api.js                # API REST generiche (GET/POST/PUT/DELETE) per tutte le tabelle
 └── public/                   # frontend servito da Express
@@ -105,5 +105,5 @@ tabellare e il suo form di inserimento — senza scrivere altro codice.
 - Nessuna autenticazione è implementata: la tabella `utenti` è predisposta
   nello schema ma va collegata a un livello di autenticazione/sessioni se
   necessario in produzione.
-- Il file del database (`db/gestionale.sqlite3`) viene creato al primo avvio;
+- Il file del database (`db/gestionale.db`) viene creato al primo avvio;
   cancellalo per ripartire con un database vuoto.

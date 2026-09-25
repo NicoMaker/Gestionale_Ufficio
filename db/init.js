@@ -2,7 +2,7 @@ const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const { TABLES } = require('./schema');
 
-const DB_PATH = path.join(__dirname, 'gestionale.sqlite3');
+const DB_PATH = path.join(__dirname, 'gestionale.db');
 const db = new sqlite3.Database(DB_PATH);
 
 // Converte un tipo di campo dello schema nel tipo colonna SQLite corrispondente
