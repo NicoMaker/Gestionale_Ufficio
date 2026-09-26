@@ -9,7 +9,14 @@
 
   let meta = null; // { groups, tables }
 
+  function injectStaticIcons() {
+    document.getElementById("menu-toggle").innerHTML = Icons.html("menu");
+    document.querySelector(".search-icon").innerHTML = Icons.html("search");
+    document.querySelector(".btn-new-icon").innerHTML = Icons.html("plus");
+  }
+
   async function start() {
+    injectStaticIcons();
     try {
       meta = await API.getMeta();
     } catch (err) {

@@ -78,8 +78,9 @@ const TableView = (() => {
       return `
         <div class="table-wrap">
           <div class="empty-state">
+            <div class="empty-icon">${Icons.html("inbox")}</div>
             <div class="empty-title">Nessun record trovato</div>
-            <p>Crea il primo record con il pulsante “+ Nuovo” in alto a destra.</p>
+            <p>Crea il primo record con il pulsante "Nuovo" in alto a destra.</p>
           </div>
         </div>`;
     }
@@ -98,8 +99,8 @@ const TableView = (() => {
         <td>${row.id}</td>
         ${visibleFields.map((f) => `<td>${renderCell(f, row)}</td>`).join("")}
         <td class="col-actions">
-          <button class="row-btn" data-action="edit">Modifica</button>
-          <button class="row-btn danger" data-action="delete">Elimina</button>
+          <button class="row-btn" data-action="edit" title="Modifica">${Icons.html("pencil")}<span>Modifica</span></button>
+          <button class="row-btn danger" data-action="delete" title="Elimina">${Icons.html("trash")}<span>Elimina</span></button>
         </td>
       </tr>`,
       )
@@ -114,8 +115,8 @@ const TableView = (() => {
         <div class="pagination">
           <span>${total} record totali — pagina ${page} di ${totalPages}</span>
           <div class="pager-btns">
-            <button class="btn" data-page="prev" ${page <= 1 ? "disabled" : ""}>← Precedente</button>
-            <button class="btn" data-page="next" ${page >= totalPages ? "disabled" : ""}>Successiva →</button>
+            <button class="btn" data-page="prev" ${page <= 1 ? "disabled" : ""}>${Icons.html("chevron-left")}<span>Precedente</span></button>
+            <button class="btn" data-page="next" ${page >= totalPages ? "disabled" : ""}><span>Successiva</span>${Icons.html("chevron-right")}</button>
           </div>
         </div>
       </div>`;

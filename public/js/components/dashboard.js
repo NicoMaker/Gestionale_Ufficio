@@ -15,6 +15,13 @@ const Dashboard = (() => {
     "ordini_vendita",
   ];
 
+  const STAT_ICONS = {
+    clienti: "users",
+    fornitori: "shopping-cart",
+    prodotti: "box",
+    ordini_vendita: "trending-up",
+  };
+
   async function render({ groups, tables }, navigate) {
     searchInput.style.display = "none";
     btnNew.style.display = "none";
@@ -36,7 +43,7 @@ const Dashboard = (() => {
         if (groupTables.length === 0) return "";
         return `
         <div class="group-card">
-          <h3>${group.label}</h3>
+          <h3><span class="group-card-icon">${Icons.html(group.icon)}</span>${group.label}</h3>
           <ul>
             ${groupTables.map((t) => `<li><a href="#" data-route="${t.name}">${t.label}</a></li>`).join("")}
           </ul>
@@ -61,15 +68,21 @@ const Dashboard = (() => {
         .map(
           (t) => `
       <div class="stat-card" data-stat="${t.name}">
-        <div class="stat-value">…</div>
-        <div class="stat-label">${t.label}</div>
+        <div class="stat-icon">${Icons.html(STAT_ICONS[t.name])}</div>
+        <div class="stat-body">
+          <div class="stat-value">…</div>
+          <div class="stat-label">${t.label}</div>
+        </div>
       </div>`,
         )
         .join("") +
       `
       <div class="stat-card">
-        <div class="stat-value">${tables.length}</div>
-        <div class="stat-label">Tabelle nel sistema</div>
+        <div class="stat-icon">${Icons.html("layout")}</div>
+        <div class="stat-body">
+          <div class="stat-value">${tables.length}</div>
+          <div class="stat-label">Tabelle nel sistema</div>
+        </div>
       </div>`;
 
     await Promise.all(

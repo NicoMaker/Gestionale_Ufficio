@@ -20,7 +20,7 @@ const Sidebar = (() => {
     const dashItem = document.createElement("button");
     dashItem.className = "nav-item";
     dashItem.dataset.route = "dashboard";
-    dashItem.innerHTML = '<span class="nav-dot"></span><span>Dashboard</span>';
+    dashItem.innerHTML = `<span class="nav-icon">${Icons.html("dashboard")}</span><span>Dashboard</span>`;
     dashItem.addEventListener("click", () => onNavigate("dashboard"));
     navEl.appendChild(dashItem);
 
@@ -30,7 +30,7 @@ const Sidebar = (() => {
 
       const title = document.createElement("div");
       title.className = "nav-group-title";
-      title.textContent = group.label;
+      title.innerHTML = `<span class="nav-group-icon">${Icons.html(group.icon)}</span><span>${group.label}</span>`;
       navEl.appendChild(title);
 
       groupTables.forEach((table) => {
