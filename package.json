@@ -5,7 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "dati": "node db/seed.js",
+    "run_dati": "npm run dati && npm start",
+    "dev_dati": "npm run dati && npm run dev"
   },
   "dependencies": {
     "cors": "^2.8.5",
