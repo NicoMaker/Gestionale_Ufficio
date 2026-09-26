@@ -38,11 +38,14 @@
   --radius-md: 12px;
   --radius-lg: 18px;
   --shadow-xs: 0 1px 2px rgba(23, 26, 43, 0.04);
-  --shadow-card: 0 1px 2px rgba(23, 26, 43, 0.04), 0 4px 16px rgba(23, 26, 43, 0.05);
+  --shadow-card:
+    0 1px 2px rgba(23, 26, 43, 0.04), 0 4px 16px rgba(23, 26, 43, 0.05);
   --shadow-card-hover: 0 6px 24px rgba(23, 26, 43, 0.09);
   --shadow-pop: 0 20px 48px rgba(15, 13, 33, 0.22);
 
-  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
   --font-display: "Manrope", var(--font);
 }
 
@@ -60,7 +63,11 @@ body {
 body {
   font-family: var(--font);
   background: var(--bg);
-  background-image: radial-gradient(circle at 100% 0%, rgba(79, 70, 229, 0.05), transparent 45%);
+  background-image: radial-gradient(
+    circle at 100% 0%,
+    rgba(79, 70, 229, 0.05),
+    transparent 45%
+  );
   color: var(--ink);
   font-size: 14px;
   line-height: 1.5;
@@ -113,7 +120,11 @@ svg {
 .sidebar {
   width: 262px;
   flex-shrink: 0;
-  background: linear-gradient(180deg, var(--sidebar-bg-2) 0%, var(--sidebar-bg) 55%);
+  background: linear-gradient(
+    180deg,
+    var(--sidebar-bg-2) 0%,
+    var(--sidebar-bg) 55%
+  );
   color: var(--sidebar-ink);
   display: flex;
   flex-direction: column;
@@ -206,7 +217,10 @@ svg {
   background: transparent;
   width: 100%;
   text-align: left;
-  transition: background 0.14s ease, color 0.14s ease, transform 0.14s ease;
+  transition:
+    background 0.14s ease,
+    color 0.14s ease,
+    transform 0.14s ease;
 }
 
 .nav-item:hover {
@@ -215,7 +229,11 @@ svg {
 }
 
 .nav-item.active {
-  background: linear-gradient(90deg, var(--sidebar-active), rgba(36, 31, 66, 0.4));
+  background: linear-gradient(
+    90deg,
+    var(--sidebar-active),
+    rgba(36, 31, 66, 0.4)
+  );
   color: #fff;
   font-weight: 650;
   box-shadow: inset 2.5px 0 0 var(--accent-light);
@@ -239,7 +257,9 @@ svg {
   background: var(--sidebar-ink-dim);
   flex-shrink: 0;
   margin-left: 2px;
-  transition: background 0.14s ease, transform 0.14s ease;
+  transition:
+    background 0.14s ease,
+    transform 0.14s ease;
 }
 .nav-item.active .nav-dot {
   background: var(--accent-2);
@@ -278,7 +298,9 @@ svg {
   color: var(--ink-soft);
   align-items: center;
   justify-content: center;
-  transition: background 0.14s ease, color 0.14s ease;
+  transition:
+    background 0.14s ease,
+    color 0.14s ease;
 }
 .icon-btn:hover {
   background: var(--surface-alt);
@@ -331,7 +353,10 @@ svg {
   border-radius: 999px;
   background: var(--surface-alt);
   outline: none;
-  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
+  transition:
+    border-color 0.14s ease,
+    background 0.14s ease,
+    box-shadow 0.14s ease;
 }
 .search-input:focus {
   border-color: var(--accent-light);
@@ -350,7 +375,11 @@ svg {
   cursor: pointer;
   font-weight: 600;
   white-space: nowrap;
-  transition: background 0.14s ease, border-color 0.14s ease, transform 0.08s ease, box-shadow 0.14s ease;
+  transition:
+    background 0.14s ease,
+    border-color 0.14s ease,
+    transform 0.08s ease,
+    box-shadow 0.14s ease;
 }
 .btn svg {
   width: 15px;
@@ -431,7 +460,9 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   gap: 14px;
-  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
 }
 .stat-card:hover {
   transform: translateY(-2px);
@@ -494,7 +525,9 @@ textarea:focus-visible {
   border-radius: var(--radius-lg);
   padding: 18px 20px;
   box-shadow: var(--shadow-card);
-  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
 }
 .group-card:hover {
   transform: translateY(-2px);
@@ -541,7 +574,10 @@ textarea:focus-visible {
   text-decoration: none;
   font-size: 13.5px;
   font-weight: 500;
-  transition: background 0.12s ease, color 0.12s ease, padding-left 0.12s ease;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease,
+    padding-left 0.12s ease;
 }
 .group-card li a:hover {
   background: var(--accent-soft);
@@ -615,7 +651,10 @@ table.data-table {
   font-size: 12.5px;
   font-weight: 600;
   color: var(--ink-soft);
-  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
 }
 .row-btn svg {
   width: 13px;
@@ -798,7 +837,10 @@ table.data-table {
   background: var(--surface-alt);
   outline: none;
   width: 100%;
-  transition: border-color 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
+  transition:
+    border-color 0.14s ease,
+    background 0.14s ease,
+    box-shadow 0.14s ease;
 }
 .field input:focus,
 .field select:focus,

@@ -112,14 +112,44 @@ function iban() {
 // ---------------------------------------------------------------------------
 
 const NOMI = [
-  "Marco", "Luca", "Giulia", "Francesca", "Andrea", "Sara", "Matteo",
-  "Chiara", "Davide", "Elena", "Simone", "Valentina", "Alessandro",
-  "Martina", "Federico", "Ilaria", "Roberto", "Silvia",
+  "Marco",
+  "Luca",
+  "Giulia",
+  "Francesca",
+  "Andrea",
+  "Sara",
+  "Matteo",
+  "Chiara",
+  "Davide",
+  "Elena",
+  "Simone",
+  "Valentina",
+  "Alessandro",
+  "Martina",
+  "Federico",
+  "Ilaria",
+  "Roberto",
+  "Silvia",
 ];
 const COGNOMI = [
-  "Rossi", "Bianchi", "Verdi", "Ferrari", "Esposito", "Romano", "Colombo",
-  "Ricci", "Marino", "Greco", "Bruno", "Gallo", "Conti", "De Luca",
-  "Mancini", "Costa", "Fontana", "Villa",
+  "Rossi",
+  "Bianchi",
+  "Verdi",
+  "Ferrari",
+  "Esposito",
+  "Romano",
+  "Colombo",
+  "Ricci",
+  "Marino",
+  "Greco",
+  "Bruno",
+  "Gallo",
+  "Conti",
+  "De Luca",
+  "Mancini",
+  "Costa",
+  "Fontana",
+  "Villa",
 ];
 const CITTA = [
   { citta: "Milano", cap: "20121" },
@@ -133,8 +163,16 @@ const CITTA = [
 ];
 const FORME_SOCIETARIE = ["Srl", "SpA", "Sas", "Snc", "Srls"];
 const SETTORI = [
-  "Costruzioni", "Elettronica", "Logistica", "Consulenza", "Arredamenti",
-  "Impianti", "Trasporti", "Informatica", "Meccanica", "Tessile",
+  "Costruzioni",
+  "Elettronica",
+  "Logistica",
+  "Consulenza",
+  "Arredamenti",
+  "Impianti",
+  "Trasporti",
+  "Informatica",
+  "Meccanica",
+  "Tessile",
 ];
 
 function ragioneSociale() {
@@ -238,7 +276,12 @@ async function seed() {
         email: emailFrom(`${nome}.${cognome}`),
         telefono: cellulare(),
         cliente_id: pickId(ids.clienti),
-        ruolo: pick(["Referente Acquisti", "Amministrazione", "Titolare", "Responsabile Tecnico"]),
+        ruolo: pick([
+          "Referente Acquisti",
+          "Amministrazione",
+          "Titolare",
+          "Responsabile Tecnico",
+        ]),
       }),
     );
   }
@@ -246,9 +289,16 @@ async function seed() {
   // ---------------------------- MAGAZZINO -----------------------------
   ids.categorie_prodotti = await insertMany(
     "categorie_prodotti",
-    ["Elettronica", "Informatica", "Cancelleria", "Arredamento Ufficio", "Materiale di Consumo"].map(
-      (nome) => ({ nome, descrizione: `Prodotti della categoria ${nome}` }),
-    ),
+    [
+      "Elettronica",
+      "Informatica",
+      "Cancelleria",
+      "Arredamento Ufficio",
+      "Materiale di Consumo",
+    ].map((nome) => ({
+      nome,
+      descrizione: `Prodotti della categoria ${nome}`,
+    })),
   );
 
   ids.unita_misura = await insertMany("unita_misura", [
@@ -260,16 +310,39 @@ async function seed() {
   ]);
 
   ids.magazzini = await insertMany("magazzini", [
-    { nome: "Magazzino Centrale", indirizzo: "Via dell'Industria, 12 - Milano", responsabile: "Roberto Costa" },
-    { nome: "Magazzino Nord", indirizzo: "Via Artigianato, 5 - Padova", responsabile: "Silvia Fontana" },
-    { nome: "Magazzino Sud", indirizzo: "Zona Industriale, 34 - Bari", responsabile: "Davide Villa" },
+    {
+      nome: "Magazzino Centrale",
+      indirizzo: "Via dell'Industria, 12 - Milano",
+      responsabile: "Roberto Costa",
+    },
+    {
+      nome: "Magazzino Nord",
+      indirizzo: "Via Artigianato, 5 - Padova",
+      responsabile: "Silvia Fontana",
+    },
+    {
+      nome: "Magazzino Sud",
+      indirizzo: "Zona Industriale, 34 - Bari",
+      responsabile: "Davide Villa",
+    },
   ]);
 
   const NOMI_PRODOTTI = [
-    "Monitor 24\" Full HD", "Notebook Pro 15", "Tastiera Meccanica", "Mouse Wireless",
-    "Scrivania Regolabile", "Sedia Ergonomica", "Stampante Laser", "Toner Nero",
-    "Risma Carta A4", "Faldone Archivio", "Lampada da Scrivania", "Armadio Metallico",
-    "Router Wi-Fi 6", "Webcam HD", "Cuffie con Microfono",
+    'Monitor 24" Full HD',
+    "Notebook Pro 15",
+    "Tastiera Meccanica",
+    "Mouse Wireless",
+    "Scrivania Regolabile",
+    "Sedia Ergonomica",
+    "Stampante Laser",
+    "Toner Nero",
+    "Risma Carta A4",
+    "Faldone Archivio",
+    "Lampada da Scrivania",
+    "Armadio Metallico",
+    "Router Wi-Fi 6",
+    "Webcam HD",
+    "Cuffie con Microfono",
   ];
   ids.prodotti = [];
   for (let i = 0; i < NOMI_PRODOTTI.length; i++) {
@@ -283,7 +356,9 @@ async function seed() {
         categoria_id: pickId(ids.categorie_prodotti),
         unita_misura_id: pickId(ids.unita_misura),
         prezzo_acquisto: prezzoAcquisto,
-        prezzo_vendita: Number((prezzoAcquisto * randFloat(1.3, 1.8)).toFixed(2)),
+        prezzo_vendita: Number(
+          (prezzoAcquisto * randFloat(1.3, 1.8)).toFixed(2),
+        ),
         scorta_minima: randInt(5, 50),
       }),
     );
@@ -344,9 +419,24 @@ async function seed() {
   }
 
   ids.listini_prezzi = await insertMany("listini_prezzi", [
-    { nome: "Listino Standard 2026", data_inizio: "2026-01-01", data_fine: "2026-12-31", sconto_percentuale: 0 },
-    { nome: "Listino Rivenditori", data_inizio: "2026-01-01", data_fine: "2026-12-31", sconto_percentuale: 15 },
-    { nome: "Listino Promozionale Estate", data_inizio: "2026-06-01", data_fine: "2026-08-31", sconto_percentuale: 10 },
+    {
+      nome: "Listino Standard 2026",
+      data_inizio: "2026-01-01",
+      data_fine: "2026-12-31",
+      sconto_percentuale: 0,
+    },
+    {
+      nome: "Listino Rivenditori",
+      data_inizio: "2026-01-01",
+      data_fine: "2026-12-31",
+      sconto_percentuale: 15,
+    },
+    {
+      nome: "Listino Promozionale Estate",
+      data_inizio: "2026-06-01",
+      data_fine: "2026-08-31",
+      sconto_percentuale: 10,
+    },
   ]);
 
   // ------------------------------ VENDITE ------------------------------
@@ -511,9 +601,24 @@ async function seed() {
   ]);
 
   ids.conti_bancari = await insertMany("conti_bancari", [
-    { nome: "Conto Corrente Principale", iban: iban(), banca: "Intesa Sanpaolo", saldo: randFloat(5000, 80000) },
-    { nome: "Conto Corrente Secondario", iban: iban(), banca: "UniCredit", saldo: randFloat(1000, 30000) },
-    { nome: "Conto Deposito", iban: iban(), banca: "BPER Banca", saldo: randFloat(10000, 100000) },
+    {
+      nome: "Conto Corrente Principale",
+      iban: iban(),
+      banca: "Intesa Sanpaolo",
+      saldo: randFloat(5000, 80000),
+    },
+    {
+      nome: "Conto Corrente Secondario",
+      iban: iban(),
+      banca: "UniCredit",
+      saldo: randFloat(1000, 30000),
+    },
+    {
+      nome: "Conto Deposito",
+      iban: iban(),
+      banca: "BPER Banca",
+      saldo: randFloat(10000, 100000),
+    },
   ]);
 
   for (let i = 0; i < 15; i++) {
@@ -522,7 +627,13 @@ async function seed() {
       data_movimento: randDate(),
       importo: randFloat(50, 5000),
       tipo: pick(["entrata", "uscita"]),
-      descrizione: pick(["Incasso fattura", "Pagamento fornitore", "Bonifico stipendi", "Spese bancarie", "Incasso cliente"]),
+      descrizione: pick([
+        "Incasso fattura",
+        "Pagamento fornitore",
+        "Bonifico stipendi",
+        "Spese bancarie",
+        "Incasso cliente",
+      ]),
     });
   }
 
@@ -540,7 +651,12 @@ async function seed() {
 
   for (let i = 0; i < 10; i++) {
     await insert("scadenze", {
-      descrizione: pick(["Saldo fattura vendita", "Saldo fattura acquisto", "Rata leasing", "Canone affitto"]),
+      descrizione: pick([
+        "Saldo fattura vendita",
+        "Saldo fattura acquisto",
+        "Rata leasing",
+        "Canone affitto",
+      ]),
       data_scadenza: randDate(2026, 2027),
       importo: randFloat(100, 5000),
       stato: pick(["aperta", "saldata"]),
@@ -555,7 +671,11 @@ async function seed() {
       cliente_id: pickId(ids.clienti),
       data_nota: randDate(),
       importo: randFloat(50, 1500),
-      motivo: pick(["Reso merce", "Errore di fatturazione", "Sconto commerciale concordato"]),
+      motivo: pick([
+        "Reso merce",
+        "Errore di fatturazione",
+        "Sconto commerciale concordato",
+      ]),
     });
   }
 
@@ -571,7 +691,10 @@ async function seed() {
   ids.ruoli = await insertMany("ruoli", [
     { nome: "Impiegato", descrizione: "Mansioni amministrative" },
     { nome: "Responsabile", descrizione: "Gestione di un reparto o team" },
-    { nome: "Operaio", descrizione: "Attività operative di magazzino/produzione" },
+    {
+      nome: "Operaio",
+      descrizione: "Attività operative di magazzino/produzione",
+    },
     { nome: "Tecnico", descrizione: "Supporto tecnico specialistico" },
     { nome: "Manager", descrizione: "Coordinamento di piu' team" },
     { nome: "Direttore", descrizione: "Direzione aziendale" },
@@ -656,7 +779,12 @@ async function seed() {
         "Negoziazione condizioni commerciali",
         "Verifica soddisfazione post-vendita",
       ]),
-      esito: pick(["Positivo", "Da ricontattare", "Nessuna risposta", "Interessato"]),
+      esito: pick([
+        "Positivo",
+        "Da ricontattare",
+        "Nessuna risposta",
+        "Interessato",
+      ]),
     });
   }
 
@@ -671,9 +799,12 @@ async function seed() {
 
   // ----------------------------- PROGETTI --------------------------------
   const NOMI_PROGETTI = [
-    "Rinnovo Parco Informatico", "Ristrutturazione Ufficio Vendite",
-    "Migrazione Gestionale", "Espansione Magazzino Nord",
-    "Campagna Marketing 2026", "Automazione Processi Interni",
+    "Rinnovo Parco Informatico",
+    "Ristrutturazione Ufficio Vendite",
+    "Migrazione Gestionale",
+    "Espansione Magazzino Nord",
+    "Campagna Marketing 2026",
+    "Automazione Processi Interni",
   ];
   ids.progetti = [];
   for (let i = 0; i < NOMI_PROGETTI.length; i++) {
@@ -691,9 +822,14 @@ async function seed() {
 
   ids.task = [];
   const TITOLI_TASK = [
-    "Analisi requisiti", "Sviluppo componente", "Test funzionale",
-    "Revisione documentazione", "Formazione utenti", "Deploy in produzione",
-    "Raccolta feedback cliente", "Ottimizzazione performance",
+    "Analisi requisiti",
+    "Sviluppo componente",
+    "Test funzionale",
+    "Revisione documentazione",
+    "Formazione utenti",
+    "Deploy in produzione",
+    "Raccolta feedback cliente",
+    "Ottimizzazione performance",
   ];
   for (let i = 0; i < 15; i++) {
     ids.task.push(
@@ -728,10 +864,34 @@ async function seed() {
 
   // ------------------------------ SISTEMA ---------------------------------
   ids.utenti = await insertMany("utenti", [
-    { username: "admin", email: "admin@example.com", password_hash: "hash_admin_demo", ruolo: "admin", attivo: 1 },
-    { username: "operatore1", email: "operatore1@example.com", password_hash: "hash_op1_demo", ruolo: "operatore", attivo: 1 },
-    { username: "operatore2", email: "operatore2@example.com", password_hash: "hash_op2_demo", ruolo: "operatore", attivo: 1 },
-    { username: "supervisore", email: "supervisore@example.com", password_hash: "hash_sup_demo", ruolo: "visualizzatore", attivo: 0 },
+    {
+      username: "admin",
+      email: "admin@example.com",
+      password_hash: "hash_admin_demo",
+      ruolo: "admin",
+      attivo: 1,
+    },
+    {
+      username: "operatore1",
+      email: "operatore1@example.com",
+      password_hash: "hash_op1_demo",
+      ruolo: "operatore",
+      attivo: 1,
+    },
+    {
+      username: "operatore2",
+      email: "operatore2@example.com",
+      password_hash: "hash_op2_demo",
+      ruolo: "operatore",
+      attivo: 1,
+    },
+    {
+      username: "supervisore",
+      email: "supervisore@example.com",
+      password_hash: "hash_sup_demo",
+      ruolo: "visualizzatore",
+      attivo: 0,
+    },
   ]);
 
   await insertMany("impostazioni", [
@@ -761,7 +921,13 @@ async function seed() {
     await insert("log_attivita", {
       utente_id: pickId(ids.utenti),
       azione: pick(["CREATE", "UPDATE", "DELETE", "LOGIN"]),
-      tabella: pick(["clienti", "prodotti", "ordini_vendita", "fatture_vendita", "dipendenti"]),
+      tabella: pick([
+        "clienti",
+        "prodotti",
+        "ordini_vendita",
+        "fatture_vendita",
+        "dipendenti",
+      ]),
       data_azione: randDateTime(),
       dettagli: "",
     });
