@@ -1,6 +1,6 @@
 # Gestionale
 
-Gestionale aziendale completo — Node.js, Express, SQLite3, frontend a componenti (HTML/CSS/JS vanilla).
+Gestionale aziendale completo — Node.js, Express, SQLite3, frontend a componenti (HTML/CSS/JS vanilla). 
 
 ## Cosa contiene
 
