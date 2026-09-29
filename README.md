@@ -1,3 +1,6 @@
+
+---
+
 # Gestionale
 
 Gestionale aziendale completo — Node.js, Express, SQLite3, frontend a componenti (HTML/CSS/JS vanilla).
@@ -65,6 +68,7 @@ gestionale_Ufficio/
 ## Come avviarlo
 
 ```bash
+cd backend
 npm install
 npm start
 ```
@@ -72,13 +76,49 @@ npm start
 Poi apri il browser su **http://localhost:3000**.
 
 Il database SQLite viene creato automaticamente al primo avvio (file
-`db/gestionale.sqlite3`), con tutte le 50 tabelle e i relativi indici.
+`db/gestionale.db`), con tutte le 50 tabelle e i relativi indici.
 Non serve nessuna configurazione aggiuntiva.
+
+## 📜 Script `npm` disponibili
+
+Nel `package.json` del backend sono definiti i seguenti script:
+
+| Script | Comando effettivo | Cosa fa |
+|---|---|---|
+| **`start`** | `node server.js` | Avvia il server Express in modalità **produzione** (senza auto-reload). Il DB viene creato se non esiste, ma **non** viene popolato con dati di esempio. |
+| **`dev`** | `nodemon server.js` | Avvia il server in modalità **sviluppo**: `nodemon` riavvia automaticamente il processo a ogni modifica dei file. Utile mentre si scrive codice. |
+| **`dati`** | `node db/seed.js` | Esegue solo lo **script di seeding**: popola il database con dati di esempio realistici (clienti, prodotti, ordini, ecc.) senza avviare il server. |
+| **`run_dati`** | `npm run dati && npm start` | **Seeding + avvio produzione** in un colpo solo: prima popola il DB, poi avvia il server con `node server.js`. |
+| **`dev_dati`** | `npm run dati && npm run dev` | **Seeding + avvio sviluppo** in un colpo solo: popola il DB e poi avvia il server con `nodemon` per lo sviluppo attivo. |
+
+### 🎯 Quando usare quale
+
+| Scenario | Script consigliato |
+|---|---|
+| Prima installazione, voglio vedere subito dati realistici in produzione | `npm run run_dati` |
+| Sto sviluppando e voglio hot-reload + dati di test | `npm run dev_dati` |
+| Voglio solo ripopolare il DB senza toccare il server | `npm run dati` |
+| Server già avviato, voglio solo riavviarlo in dev | `npm run dev` |
+| Deploy finale / produzione pulita | `npm start` |
+
+### ⚠️ Nota sul seeding
+
+Lo script `dati` (`db/seed.js`) **inserisce** dati di esempio: se eseguito più
+volte sullo stesso database, potrebbero verificarsi duplicati o errori di
+vincoli univoci. Per ripartire da zero:
+
+```bash
+rm db/gestionale.db      # Linux/macOS
+del db\gestionale.db     # Windows
+npm run dati
+```
+
+Il file `gestionale.db` verrà ricreato automaticamente al successivo avvio.
 
 ## Schema ER
 
 Il diagramma entità-relazione completo delle 50 tabelle è in
-`docs/schema-er.md` (Mermaid, visualizzabile su GitHub o in qualunque
+`backend/docs/schema.mmd` (Mermaid, visualizzabile su GitHub o in qualunque
 editor con supporto Mermaid) ed è generato automaticamente dallo schema
 reale, quindi resta sempre allineato al codice. Per rigenerarlo dopo aver
 modificato `db/schema.js`:
@@ -86,6 +126,8 @@ modificato `db/schema.js`:
 ```bash
 node docs/generate-er-diagram.js
 ```
+
+Verrà prodotto anche `backend/docs/schema.png` come immagine esportata.
 
 ## Come funziona (architettura)
 
@@ -128,3 +170,29 @@ tabellare e il suo form di inserimento — senza scrivere altro codice.
   necessario in produzione.
 - Il file del database (`db/gestionale.db`) viene creato al primo avvio;
   cancellalo per ripartire con un database vuoto.
+- Lo script `dati` è **idempotente solo su DB vuoto**: per ripopolare da zero,
+  cancella prima `gestionale.db`.
+
+---
+
+## 📋 Riepilogo dei comandi rapidi
+
+```bash
+# 🚀 Avvio produzione (DB vuoto se non esiste)
+npm start
+
+# 🔧 Avvio sviluppo con hot-reload
+npm run dev
+
+# 🌱 Solo seeding (popola dati di esempio)
+npm run dati
+
+# 🚀🌱 Seeding + avvio produzione
+npm run run_dati
+
+# 🔧🌱 Seeding + avvio sviluppo
+npm run dev_dati
+
+# 📊 Rigenera diagramma ER
+node docs/generate-er-diagram.js
+```
