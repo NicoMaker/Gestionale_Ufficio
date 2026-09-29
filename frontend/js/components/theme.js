@@ -48,3 +48,12 @@ const Theme = (() => {
 
   return { init };
 })();
+
+(function () {
+  try {
+    var t = localStorage.getItem("gestionale-theme");
+    if (!t)
+      t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.dataset.theme = t;
+  } catch (e) {}
+})();
