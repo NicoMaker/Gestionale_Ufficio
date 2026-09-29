@@ -274,8 +274,12 @@ const Trash = (() => {
           <button class="btn btn-ghost" id="bulk-clear">Deseleziona</button>
         </div>
       </div>`;
-    slot.querySelector("#bulk-restore").addEventListener("click", restoreSelected);
-    slot.querySelector("#bulk-delete").addEventListener("click", deleteSelected);
+    slot
+      .querySelector("#bulk-restore")
+      .addEventListener("click", restoreSelected);
+    slot
+      .querySelector("#bulk-delete")
+      .addEventListener("click", deleteSelected);
     slot.querySelector("#bulk-clear").addEventListener("click", () => {
       selected.clear();
       load();
@@ -302,7 +306,9 @@ const Trash = (() => {
           `Ripristinati ${r.restored} su ${r.total}. ${r.skipped} non ripristinabili sono rimasti nel cestino.`,
         );
       } else {
-        Toast.success(`Ripristinati tutti i ${r.restored} elementi selezionati`);
+        Toast.success(
+          `Ripristinati tutti i ${r.restored} elementi selezionati`,
+        );
       }
       // restano selezionati solo quelli non ripristinati
       selected.clear();

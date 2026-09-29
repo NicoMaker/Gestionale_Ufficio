@@ -201,7 +201,8 @@ function moveToTrash(tableName, id) {
 function moveManyToTrash(tableName, ids) {
   const table = assertTable(tableName);
   const unique = [...new Set(ids.map(Number).filter(Number.isInteger))];
-  if (unique.length === 0) throw new HttpError(400, "Nessun record selezionato");
+  if (unique.length === 0)
+    throw new HttpError(400, "Nessun record selezionato");
   if (unique.length > MAX_BULK)
     throw new HttpError(400, `Massimo ${MAX_BULK} record per operazione`);
 
@@ -213,7 +214,9 @@ function moveManyToTrash(tableName, ids) {
       progress = false;
       const next = [];
       for (const id of pending) {
-        const row = await get(`SELECT id FROM ${table.name} WHERE id = ?`, [id]);
+        const row = await get(`SELECT id FROM ${table.name} WHERE id = ?`, [
+          id,
+        ]);
         if (!row) continue; // già inesistente: ignorato
         const { total } = await getLinks(table.name, id);
         if (total === 0) {
@@ -450,9 +453,9 @@ function restoreMany(trashIds) {
 }
 
 function normalizeIds(list) {
-  const ids = [...new Set((Array.isArray(list) ? list : []).map(Number))].filter(
-    (n) => Number.isInteger(n) && n > 0,
-  );
+  const ids = [
+    ...new Set((Array.isArray(list) ? list : []).map(Number)),
+  ].filter((n) => Number.isInteger(n) && n > 0);
   if (ids.length === 0) throw new HttpError(400, "Nessun elemento selezionato");
   if (ids.length > MAX_BULK)
     throw new HttpError(400, `Massimo ${MAX_BULK} elementi per operazione`);
@@ -498,7 +501,11 @@ function deleteMany(trashIds) {
       `DELETE FROM cestino WHERE id IN (${ids.map(() => "?").join(",")})`,
       ids,
     );
-    return { success: true, deleted: r.changes, dipendenti_non_ripristinabili: orphaned };
+    return {
+      success: true,
+      deleted: r.changes,
+      dipendenti_non_ripristinabili: orphaned,
+    };
   });
 }
 
@@ -610,7 +617,8 @@ async function summary() {
   for (const entry of entries) {
     const check = await checkRestorable(entry);
     if (check.restorable) restorable++;
-    if (new Date(entry.expires_at).getTime() - now <= 3 * DAY_MS) expiringSoon++;
+    if (new Date(entry.expires_at).getTime() - now <= 3 * DAY_MS)
+      expiringSoon++;
     byTable.set(entry.table_name, (byTable.get(entry.table_name) || 0) + 1);
   }
   return {
@@ -621,7 +629,11 @@ async function summary() {
     next_expiry: entries.length ? entries[0].expires_at : null,
     retention_days: RETENTION_DAYS,
     by_table: [...byTable.entries()]
-      .map(([table, n]) => ({ table, table_label: tableLabel(table), count: n }))
+      .map(([table, n]) => ({
+        table,
+        table_label: tableLabel(table),
+        count: n,
+      }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 5),
   };

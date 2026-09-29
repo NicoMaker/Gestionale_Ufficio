@@ -259,7 +259,9 @@ router.post("/:table/bulk-delete", async (req, res) => {
   const table = getTableOr404(req, res);
   if (!table) return;
   try {
-    res.json(await Trash.moveManyToTrash(table.name, (req.body || {}).ids || []));
+    res.json(
+      await Trash.moveManyToTrash(table.name, (req.body || {}).ids || []),
+    );
   } catch (err) {
     if (err instanceof Trash.HttpError) {
       return res.status(err.status).json({ error: err.message, ...err.extra });

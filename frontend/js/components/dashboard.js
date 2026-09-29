@@ -101,7 +101,8 @@ const Dashboard = (() => {
           ? `<span class="badge warn">${s.expiring_soon} in scadenza (≤ 3 giorni)</span>`
           : "",
         ...s.by_table.map(
-          (t) => `<span class="badge neutral">${t.table_label}: ${t.count}</span>`,
+          (t) =>
+            `<span class="badge neutral">${t.table_label}: ${t.count}</span>`,
         ),
       ].join("");
     } catch (_) {

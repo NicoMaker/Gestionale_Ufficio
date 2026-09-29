@@ -7,23 +7,41 @@ const path = require("path");
 const fs = require("fs");
 const assert = require("assert");
 
-process.env.DB_PATH = path.join(os.tmpdir(), `gestionale-test-${Date.now()}.db`);
+process.env.DB_PATH = path.join(
+  os.tmpdir(),
+  `gestionale-test-${Date.now()}.db`,
+);
 process.env.TRASH_RETENTION_DAYS = "15";
 
 const { initDatabase, db } = require("../db/init");
 const Trash = require("../db/trash");
 
 const run = (sql, p = []) =>
-  new Promise((res, rej) => db.run(sql, p, function (e) { e ? rej(e) : res(this.lastID); }));
+  new Promise((res, rej) =>
+    db.run(sql, p, function (e) {
+      e ? rej(e) : res(this.lastID);
+    }),
+  );
 const get = (sql, p = []) =>
   new Promise((res, rej) => db.get(sql, p, (e, r) => (e ? rej(e) : res(r))));
-const active = async (t, id) => Boolean(await get(`SELECT 1 x FROM ${t} WHERE id=?`, [id]));
+const active = async (t, id) =>
+  Boolean(await get(`SELECT 1 x FROM ${t} WHERE id=?`, [id]));
 const rejects = async (fn, status) => {
-  try { await fn(); } catch (e) { assert.strictEqual(e.status, status, e.message); return e; }
+  try {
+    await fn();
+  } catch (e) {
+    assert.strictEqual(e.status, status, e.message);
+    return e;
+  }
   assert.fail(`atteso errore ${status}`);
 };
 const trashId = async (t, id) =>
-  (await get(`SELECT id FROM cestino WHERE table_name=? AND record_id=?`, [t, id]))?.id;
+  (
+    await get(`SELECT id FROM cestino WHERE table_name=? AND record_id=?`, [
+      t,
+      id,
+    ])
+  )?.id;
 
 let passed = 0;
 async function test(name, fn) {
@@ -35,13 +53,22 @@ async function test(name, fn) {
 (async () => {
   await initDatabase();
   const cat = await run(`INSERT INTO categorie_clienti (nome) VALUES ('Cat')`);
-  const cli = await run(`INSERT INTO clienti (ragione_sociale, categoria_id) VALUES ('Cli', ?)`, [cat]);
-  const con = await run(`INSERT INTO contatti (nome, cognome, cliente_id) VALUES ('A','B', ?)`, [cli]);
+  const cli = await run(
+    `INSERT INTO clienti (ragione_sociale, categoria_id) VALUES ('Cli', ?)`,
+    [cat],
+  );
+  const con = await run(
+    `INSERT INTO contatti (nome, cognome, cliente_id) VALUES ('A','B', ?)`,
+    [cli],
+  );
 
   console.log("Cestino — test regole");
 
   await test("non si elimina un record con collegamenti > 0 (409)", async () => {
-    const e = await rejects(() => Trash.moveToTrash("categorie_clienti", cat), 409);
+    const e = await rejects(
+      () => Trash.moveToTrash("categorie_clienti", cat),
+      409,
+    );
     assert.strictEqual(e.extra.code, "COLLEGATO");
     assert.ok(await active("categorie_clienti", cat));
   });
@@ -56,8 +83,13 @@ async function test(name, fn) {
   });
 
   await test("eliminazione multipla: il padre collegato viene saltato, non eliminato", async () => {
-    const c2 = await run(`INSERT INTO categorie_clienti (nome) VALUES ('Cat2')`);
-    await run(`INSERT INTO clienti (ragione_sociale, categoria_id) VALUES ('Cli2', ?)`, [c2]);
+    const c2 = await run(
+      `INSERT INTO categorie_clienti (nome) VALUES ('Cat2')`,
+    );
+    await run(
+      `INSERT INTO clienti (ragione_sociale, categoria_id) VALUES ('Cli2', ?)`,
+      [c2],
+    );
     const r = await Trash.moveManyToTrash("categorie_clienti", [c2]);
     assert.strictEqual(r.moved, 0);
     assert.strictEqual(r.blocked, 1);
@@ -113,12 +145,20 @@ async function test(name, fn) {
   });
 
   await test("scadenza automatica dopo 15 giorni", async () => {
-    const u = await run(`INSERT INTO unita_misura (nome, simbolo) VALUES ('X','x')`);
+    const u = await run(
+      `INSERT INTO unita_misura (nome, simbolo) VALUES ('X','x')`,
+    );
     await Trash.moveToTrash("unita_misura", u);
-    const row = await get(`SELECT deleted_at, expires_at FROM cestino WHERE table_name='unita_misura'`);
-    const days = (new Date(row.expires_at) - new Date(row.deleted_at)) / 86400000;
+    const row = await get(
+      `SELECT deleted_at, expires_at FROM cestino WHERE table_name='unita_misura'`,
+    );
+    const days =
+      (new Date(row.expires_at) - new Date(row.deleted_at)) / 86400000;
     assert.strictEqual(days, 15);
-    await run(`UPDATE cestino SET expires_at=? WHERE table_name='unita_misura'`, [new Date(Date.now() - 1000).toISOString()]);
+    await run(
+      `UPDATE cestino SET expires_at=? WHERE table_name='unita_misura'`,
+      [new Date(Date.now() - 1000).toISOString()],
+    );
     assert.strictEqual(await Trash.purgeExpired(), 1);
     assert.ok(!(await trashId("unita_misura", u)));
   });
@@ -129,5 +169,13 @@ async function test(name, fn) {
   });
 
   console.log(`\n${passed} test superati`);
-  db.close(() => { try { fs.unlinkSync(process.env.DB_PATH); } catch (_) {} process.exit(0); });
-})().catch((e) => { console.error("\n✖ FALLITO:", e.message); process.exit(1); });
+  db.close(() => {
+    try {
+      fs.unlinkSync(process.env.DB_PATH);
+    } catch (_) {}
+    process.exit(0);
+  });
+})().catch((e) => {
+  console.error("\n✖ FALLITO:", e.message);
+  process.exit(1);
+});

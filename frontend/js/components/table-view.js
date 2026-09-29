@@ -255,7 +255,9 @@ const TableView = (() => {
           <button class="btn btn-ghost" id="bulk-clear">Deseleziona</button>
         </div>
       </div>`;
-    slot.querySelector("#bulk-delete").addEventListener("click", confirmBulkDelete);
+    slot
+      .querySelector("#bulk-delete")
+      .addEventListener("click", confirmBulkDelete);
     slot.querySelector("#bulk-clear").addEventListener("click", () => {
       selected.clear();
       load();
@@ -284,7 +286,9 @@ const TableView = (() => {
       if (r.moved > 0) {
         Toast.success(
           `${r.moved} record spostat${r.moved === 1 ? "o" : "i"} nel cestino` +
-            (r.blocked > 0 ? ` — ${r.blocked} non eliminabili (collegati)` : ""),
+            (r.blocked > 0
+              ? ` — ${r.blocked} non eliminabili (collegati)`
+              : ""),
         );
       }
       if (r.blocked > 0) {
@@ -292,7 +296,9 @@ const TableView = (() => {
           .map(
             (b) =>
               `• #${b.id}: ` +
-              b.links.map((l) => `${l.table_label} (${l.field_label}): ${l.count}`).join(", "),
+              b.links
+                .map((l) => `${l.table_label} (${l.field_label}): ${l.count}`)
+                .join(", "),
           )
           .join("\n");
         await ConfirmDialog.ask({
