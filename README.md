@@ -1,4 +1,3 @@
-
 ---
 
 # Gestionale
@@ -83,23 +82,23 @@ Non serve nessuna configurazione aggiuntiva.
 
 Nel `package.json` del backend sono definiti i seguenti script:
 
-| Script | Comando effettivo | Cosa fa |
-|---|---|---|
-| **`start`** | `node server.js` | Avvia il server Express in modalità **produzione** (senza auto-reload). Il DB viene creato se non esiste, ma **non** viene popolato con dati di esempio. |
-| **`dev`** | `nodemon server.js` | Avvia il server in modalità **sviluppo**: `nodemon` riavvia automaticamente il processo a ogni modifica dei file. Utile mentre si scrive codice. |
-| **`dati`** | `node db/seed.js` | Esegue solo lo **script di seeding**: popola il database con dati di esempio realistici (clienti, prodotti, ordini, ecc.) senza avviare il server. |
-| **`run_dati`** | `npm run dati && npm start` | **Seeding + avvio produzione** in un colpo solo: prima popola il DB, poi avvia il server con `node server.js`. |
-| **`dev_dati`** | `npm run dati && npm run dev` | **Seeding + avvio sviluppo** in un colpo solo: popola il DB e poi avvia il server con `nodemon` per lo sviluppo attivo. |
+| Script         | Comando effettivo             | Cosa fa                                                                                                                                                  |
+| -------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`start`**    | `node server.js`              | Avvia il server Express in modalità **produzione** (senza auto-reload). Il DB viene creato se non esiste, ma **non** viene popolato con dati di esempio. |
+| **`dev`**      | `nodemon server.js`           | Avvia il server in modalità **sviluppo**: `nodemon` riavvia automaticamente il processo a ogni modifica dei file. Utile mentre si scrive codice.         |
+| **`dati`**     | `node db/seed.js`             | Esegue solo lo **script di seeding**: popola il database con dati di esempio realistici (clienti, prodotti, ordini, ecc.) senza avviare il server.       |
+| **`run_dati`** | `npm run dati && npm start`   | **Seeding + avvio produzione** in un colpo solo: prima popola il DB, poi avvia il server con `node server.js`.                                           |
+| **`dev_dati`** | `npm run dati && npm run dev` | **Seeding + avvio sviluppo** in un colpo solo: popola il DB e poi avvia il server con `nodemon` per lo sviluppo attivo.                                  |
 
 ### 🎯 Quando usare quale
 
-| Scenario | Script consigliato |
-|---|---|
+| Scenario                                                                | Script consigliato |
+| ----------------------------------------------------------------------- | ------------------ |
 | Prima installazione, voglio vedere subito dati realistici in produzione | `npm run run_dati` |
-| Sto sviluppando e voglio hot-reload + dati di test | `npm run dev_dati` |
-| Voglio solo ripopolare il DB senza toccare il server | `npm run dati` |
-| Server già avviato, voglio solo riavviarlo in dev | `npm run dev` |
-| Deploy finale / produzione pulita | `npm start` |
+| Sto sviluppando e voglio hot-reload + dati di test                      | `npm run dev_dati` |
+| Voglio solo ripopolare il DB senza toccare il server                    | `npm run dati`     |
+| Server già avviato, voglio solo riavviarlo in dev                       | `npm run dev`      |
+| Deploy finale / produzione pulita                                       | `npm start`        |
 
 ### ⚠️ Nota sul seeding
 
