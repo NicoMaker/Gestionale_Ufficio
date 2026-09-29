@@ -1,6 +1,7 @@
 const express = require("express");
 const { db } = require("../db/init");
 const { TABLES, GROUPS } = require("../db/schema");
+const Trash = require("../db/trash");
 
 const router = express.Router();
 
@@ -47,7 +48,11 @@ function missingRequiredFields(table, data) {
 // GET /api/_meta -> schema completo + gruppi (usato dal frontend per costruire la UI)
 // ---------------------------------------------------------------------------
 router.get("/_meta", (req, res) => {
-  res.json({ groups: GROUPS, tables: TABLES });
+  res.json({
+    groups: GROUPS,
+    tables: TABLES,
+    trash: { retentionDays: Trash.RETENTION_DAYS },
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -218,22 +223,44 @@ router.put("/:table/:id", (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// DELETE /api/:table/:id -> elimina riga
+// GET /api/:table/:id/links -> record che referenziano questo record.
+// Se total > 0 il record NON si può eliminare (collegamenti != 0).
 // ---------------------------------------------------------------------------
-router.delete("/:table/:id", (req, res) => {
+router.get("/:table/:id/links", async (req, res) => {
   const table = getTableOr404(req, res);
   if (!table) return;
+  try {
+    const exists = await new Promise((resolve, reject) =>
+      db.get(
+        `SELECT id FROM ${table.name} WHERE id = ?`,
+        [req.params.id],
+        (err, row) => (err ? reject(err) : resolve(row)),
+      ),
+    );
+    if (!exists) return res.status(404).json({ error: "Record non trovato" });
+    res.json(await Trash.getLinks(table.name, exists.id));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-  db.run(
-    `DELETE FROM ${table.name} WHERE id = ?`,
-    [req.params.id],
-    function deleteCallback(err) {
-      if (err) return res.status(400).json({ error: err.message });
-      if (this.changes === 0)
-        return res.status(404).json({ error: "Record non trovato" });
-      res.json({ success: true });
-    },
-  );
+// ---------------------------------------------------------------------------
+// DELETE /api/:table/:id -> sposta il record nel CESTINO (eliminazione "soft").
+// Consentito solo se nessun altro record lo referenzia (altrimenti 409).
+// Il record resta ripristinabile e viene eliminato definitivamente in automatico
+// dopo TRASH_RETENTION_DAYS giorni (default 15).
+// ---------------------------------------------------------------------------
+router.delete("/:table/:id", async (req, res) => {
+  const table = getTableOr404(req, res);
+  if (!table) return;
+  try {
+    res.json(await Trash.moveToTrash(table.name, Number(req.params.id)));
+  } catch (err) {
+    if (err instanceof Trash.HttpError) {
+      return res.status(err.status).json({ error: err.message, ...err.extra });
+    }
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;

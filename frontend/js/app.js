@@ -38,6 +38,8 @@
       return;
     }
 
+    if (meta.trash) AppConfig.retentionDays = meta.trash.retentionDays;
+
     Sidebar.init(meta, navigate);
 
     window.addEventListener("hashchange", () =>
@@ -54,11 +56,19 @@
   async function navigate(route, updateHash = true) {
     if (updateHash) window.location.hash = route;
     Sidebar.setActive(route);
+    Trash.leave();
 
     if (route === "dashboard") {
       titleEl.textContent = "Dashboard";
       subtitleEl.textContent = "Panoramica generale del gestionale";
       Dashboard.render(meta, navigate);
+      return;
+    }
+
+    if (route === "cestino") {
+      titleEl.textContent = "Cestino";
+      subtitleEl.textContent = `Elementi eliminati — rimozione definitiva dopo ${AppConfig.retentionDays} giorni`;
+      Trash.render(meta);
       return;
     }
 

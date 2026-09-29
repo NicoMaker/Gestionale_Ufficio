@@ -17,6 +17,7 @@ const TableView = (() => {
 
   async function render(table) {
     currentTable = table;
+    fkLabelCache = {}; // le etichette FK possono cambiare (ripristini, nuovi record)
     currentPage = 1;
     currentQuery = "";
     currentSort = "id";
@@ -120,7 +121,7 @@ const TableView = (() => {
         ${visibleFields.map((f) => `<td>${renderCell(f, row)}</td>`).join("")}
         <td class="col-actions">
           <button class="row-btn" data-action="edit" title="Modifica">${Icons.html("pencil")}<span>Modifica</span></button>
-          <button class="row-btn danger" data-action="delete" title="Elimina">${Icons.html("trash")}<span>Elimina</span></button>
+          <button class="row-btn danger" data-action="delete" title="Sposta nel cestino">${Icons.html("trash")}<span>Elimina</span></button>
         </td>
       </tr>`,
       )
@@ -220,18 +221,51 @@ const TableView = (() => {
     });
   }
 
+  // Eliminazione = spostamento nel cestino. Consentita solo se il record non
+  // ha altri record collegati (collegamenti = 0).
   async function confirmDelete(id) {
+    let info;
+    try {
+      info = await API.links(currentTable.name, id);
+    } catch (err) {
+      Toast.error(err.message);
+      return;
+    }
+
+    if (info.total > 0) {
+      const dettaglio = info.links
+        .map((l) => `• ${l.table_label} (${l.field_label}): ${l.count}`)
+        .join("\n");
+      await ConfirmDialog.ask({
+        title: "Impossibile eliminare",
+        message:
+          `Il record #${id} è collegato a ${info.total} ${info.total === 1 ? "altro record" : "altri record"}:\n${dettaglio}\n\n` +
+          "Elimina o scollega prima i record collegati.",
+        confirmLabel: "Ho capito",
+        danger: false,
+        hideCancel: true,
+      });
+      return;
+    }
+
+    const days = AppConfig.retentionDays;
     const ok = await ConfirmDialog.ask({
-      title: "Eliminare il record?",
-      message: `Il record #${id} verrà eliminato definitivamente.`,
+      title: "Spostare nel cestino?",
+      message:
+        `Il record #${id} verrà spostato nel cestino e potrà essere ripristinato per ${days} giorni. ` +
+        "Dopo questo periodo verrà eliminato definitivamente in automatico.",
+      confirmLabel: "Sposta nel cestino",
     });
     if (!ok) return;
-    API.remove(currentTable.name, id)
-      .then(() => {
-        Toast.success("Record eliminato");
-        load();
-      })
-      .catch((err) => Toast.error(err.message));
+    try {
+      await API.remove(currentTable.name, id);
+      Toast.success("Record spostato nel cestino");
+      Sidebar.refreshTrashCount();
+      load();
+    } catch (err) {
+      Toast.error(err.message);
+      load();
+    }
   }
 
   function wirePagination(result) {

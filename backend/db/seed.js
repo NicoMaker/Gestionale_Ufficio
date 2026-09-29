@@ -205,7 +205,8 @@ async function resetAllTables() {
     await run(`DELETE FROM ${table.name}`);
     await run(`DELETE FROM sqlite_sequence WHERE name = ?`, [table.name]);
   }
-  console.log("Tutte le tabelle sono state svuotate.");
+  await run(`DELETE FROM cestino`);
+  console.log("Tutte le tabelle (e il cestino) sono state svuotate.");
 }
 
 // ---------------------------------------------------------------------------

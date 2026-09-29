@@ -36,6 +36,20 @@ function buildCreateTableSQL(table) {
   return `CREATE TABLE IF NOT EXISTS ${table.name} (\n  ${columns.join(",\n  ")}\n)`;
 }
 
+// Tabella di sistema del cestino (non fa parte dello schema delle 50 tabelle):
+// contiene l'istantanea JSON dei record eliminati, in attesa di ripristino o
+// di eliminazione definitiva (automatica dopo TRASH_RETENTION_DAYS giorni).
+const CESTINO_SQL = `CREATE TABLE IF NOT EXISTS cestino (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  table_name TEXT NOT NULL,
+  record_id INTEGER NOT NULL,
+  label TEXT,
+  data TEXT NOT NULL,
+  deleted_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  UNIQUE (table_name, record_id)
+)`;
+
 function initDatabase() {
   return new Promise((resolve, reject) => {
     db.serialize(() => {
@@ -52,6 +66,13 @@ function initDatabase() {
           }
         });
       }
+
+      db.run(CESTINO_SQL, (err) => {
+        if (err) console.error("Errore creazione tabella cestino:", err.message);
+      });
+      db.run(
+        "CREATE INDEX IF NOT EXISTS idx_cestino_expires ON cestino(expires_at)",
+      );
 
       // Indici sulle colonne fk per query più veloci
       for (const table of TABLES) {

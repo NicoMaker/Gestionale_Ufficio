@@ -3,6 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const { initDatabase, db } = require("./db/init");
 const apiRouter = require("./routes/api");
+const cestinoRouter = require("./routes/cestino");
+const Trash = require("./db/trash");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,6 +27,9 @@ app.get("/api/health", (req, res) =>
   res.json({ status: "ok", uptime: process.uptime() }),
 );
 
+// Cestino (prima del router generico, che lo tratterebbe come tabella)
+app.use("/api/cestino", cestinoRouter);
+
 // API REST generica per tutte le 50 tabelle
 app.use("/api", apiRouter);
 
@@ -46,10 +51,16 @@ app.use((err, req, res, next) => {
 
 initDatabase()
   .then(() => {
+    // Pulizia automatica del cestino (all'avvio e poi ogni ora)
+    Trash.startPurgeJob();
+
     const server = app.listen(PORT, () => {
       console.log("==================================================");
       console.log("  GESTIONALE avviato correttamente");
       console.log(`  Apri il browser su: http://localhost:${PORT}`);
+      console.log(
+        `  Cestino: eliminazione definitiva dopo ${Trash.RETENTION_DAYS} giorni`,
+      );
       console.log("==================================================");
     });
 

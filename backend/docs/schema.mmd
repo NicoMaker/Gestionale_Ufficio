@@ -534,3 +534,15 @@ erDiagram
         TEXT created_at
         TEXT updated_at
     }
+
+    %% CESTINO: record eliminati (istantanea JSON), eliminati in automatico dopo 15 giorni
+    %% Ripristino possibile solo se tutte le FK contenute in `data` puntano a record esistenti
+    cestino {
+        INTEGER id PK
+        TEXT table_name "tabella di origine (una delle 50 tabelle)"
+        INTEGER record_id "id originale del record eliminato"
+        TEXT label "etichetta leggibile del record"
+        TEXT data "istantanea JSON completa (id, campi, FK, created_at, updated_at)"
+        TEXT deleted_at "data di eliminazione (ISO 8601 UTC)"
+        TEXT expires_at "data di eliminazione definitiva = deleted_at + 15 giorni"
+    }

@@ -48,6 +48,25 @@ function buildRelationships() {
   return lines.join("\n");
 }
 
+// Tabella di sistema del cestino (definita in db/init.js, non in schema.js).
+// Il legame con le altre tabelle e' LOGICO (table_name + record_id): il record
+// eliminato vive nel cestino come istantanea JSON, senza foreign key fisica.
+function buildTrashEntity() {
+  return [
+    "    %% CESTINO: record eliminati (istantanea JSON), eliminati in automatico dopo 15 giorni",
+    "    %% Ripristino possibile solo se tutte le FK contenute in `data` puntano a record esistenti",
+    "    cestino {",
+    "        INTEGER id PK",
+    '        TEXT table_name "tabella di origine (una delle 50 tabelle)"',
+    '        INTEGER record_id "id originale del record eliminato"',
+    '        TEXT label "etichetta leggibile del record"',
+    '        TEXT data "istantanea JSON completa (id, campi, FK, created_at, updated_at)"',
+    '        TEXT deleted_at "data di eliminazione (ISO 8601 UTC)"',
+    '        TEXT expires_at "data di eliminazione definitiva = deleted_at + 15 giorni"',
+    "    }",
+  ].join("\n");
+}
+
 function build() {
   return [
     "%% Diagramma ER generato automaticamente da db/schema.js",
@@ -56,11 +75,13 @@ function build() {
     buildRelationships(),
     "",
     buildEntities(),
+    "",
+    buildTrashEntity(),
   ].join("\n");
 }
 
 const output = build();
 fs.writeFileSync(path.join(__dirname, "schema.mmd"), output);
 console.log(
-  `Diagramma generato: ${TABLES.length} tabelle, scritto in docs/schema.mmd`,
+  `Diagramma generato: ${TABLES.length} tabelle + cestino, scritto in docs/schema.mmd`,
 );

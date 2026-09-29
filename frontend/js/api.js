@@ -3,6 +3,9 @@
  * Tutte le funzioni ritornano Promise e lanciano un errore con messaggio
  * leggibile in caso di risposta non-ok.
  */
+// Configurazione condivisa (valorizzata da app.js a partire da /api/_meta)
+const AppConfig = { retentionDays: 15 };
+
 const API = (() => {
   async function request(url, options = {}) {
     const res = await fetch(url, {
@@ -53,6 +56,23 @@ const API = (() => {
         body: JSON.stringify(data),
       }),
 
+    // Sposta il record nel cestino (bloccato con 409 se ha record collegati)
     remove: (table, id) => request(`/api/${table}/${id}`, { method: "DELETE" }),
+
+    // Record che referenziano questo record: { total, links: [...] }
+    links: (table, id) => request(`/api/${table}/${id}/links`),
+
+    // ------------------------------ CESTINO ------------------------------
+    trashList: ({ page = 1, limit = 25, q = "", table = "" } = {}) => {
+      const params = new URLSearchParams({ page, limit, q, table });
+      return request(`/api/cestino?${params.toString()}`);
+    },
+    trashCount: () => request("/api/cestino/count"),
+    trashRestore: (id) =>
+      request(`/api/cestino/${id}/restore`, { method: "POST" }),
+    trashRestoreAll: () =>
+      request("/api/cestino/restore-all", { method: "POST" }),
+    trashDelete: (id) => request(`/api/cestino/${id}`, { method: "DELETE" }),
+    trashEmpty: () => request("/api/cestino", { method: "DELETE" }),
   };
 })();

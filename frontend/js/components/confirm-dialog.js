@@ -9,6 +9,7 @@ const ConfirmDialog = (() => {
     message = "",
     confirmLabel = "Elimina",
     danger = true,
+    hideCancel = false,
   } = {}) {
     return new Promise((resolve) => {
       const dlg = document.createElement("dialog");
@@ -23,6 +24,7 @@ const ConfirmDialog = (() => {
       dlg.querySelector("h3").textContent = title;
       dlg.querySelector("p").textContent = message;
       dlg.querySelector('[value="ok"]').textContent = confirmLabel;
+      if (hideCancel) dlg.querySelector('[value="cancel"]').remove();
 
       dlg
         .querySelectorAll("button")

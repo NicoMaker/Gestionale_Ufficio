@@ -11,6 +11,20 @@ const Sidebar = (() => {
     onNavigate = navigateCallback;
     render(groups, tables);
     wireToggle();
+    refreshTrashCount();
+  }
+
+  // Aggiorna il contatore del cestino accanto alla voce di menu
+  async function refreshTrashCount() {
+    const badge = navEl && navEl.querySelector("#trash-count");
+    if (!badge) return;
+    try {
+      const { total } = await API.trashCount();
+      badge.textContent = total;
+      badge.style.display = total > 0 ? "" : "none";
+    } catch (_) {
+      badge.style.display = "none";
+    }
   }
 
   function render(groups, tables) {
@@ -42,6 +56,22 @@ const Sidebar = (() => {
         navEl.appendChild(item);
       });
     });
+
+    renderTrashItem();
+  }
+
+  function renderTrashItem() {
+    const title = document.createElement("div");
+    title.className = "nav-group-title";
+    title.innerHTML = `<span class="nav-group-icon">${Icons.html("trash")}</span><span>Cestino</span>`;
+    navEl.appendChild(title);
+
+    const item = document.createElement("button");
+    item.className = "nav-item";
+    item.dataset.route = "cestino";
+    item.innerHTML = `<span class="nav-icon">${Icons.html("restore")}</span><span>Elementi eliminati</span><span id="trash-count" class="nav-badge" style="display:none">0</span>`;
+    item.addEventListener("click", () => onNavigate("cestino"));
+    navEl.appendChild(item);
   }
 
   function setActive(routeName) {
@@ -57,5 +87,5 @@ const Sidebar = (() => {
     navEl.addEventListener("click", () => sidebar.classList.remove("open"));
   }
 
-  return { init, setActive };
+  return { init, setActive, refreshTrashCount };
 })();

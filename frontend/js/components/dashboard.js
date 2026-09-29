@@ -83,7 +83,24 @@ const Dashboard = (() => {
           <div class="stat-value">${tables.length}</div>
           <div class="stat-label">Tabelle nel sistema</div>
         </div>
-      </div>`;
+      </div>
+      <a class="stat-card stat-link" href="#cestino" data-route-link="cestino">
+        <div class="stat-icon">${Icons.html("trash")}</div>
+        <div class="stat-body">
+          <div class="stat-value" id="stat-trash">…</div>
+          <div class="stat-label">Nel cestino</div>
+        </div>
+      </a>`;
+
+    API.trashCount()
+      .then(({ total }) => {
+        const el = document.getElementById("stat-trash");
+        if (el) el.textContent = total;
+      })
+      .catch(() => {
+        const el = document.getElementById("stat-trash");
+        if (el) el.textContent = "—";
+      });
 
     await Promise.all(
       wanted.map(async (t) => {

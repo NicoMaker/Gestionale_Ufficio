@@ -1059,3 +1059,161 @@ table.data-table {
     animation: none;
   }
 }
+
+/* ============================================================
+   Cestino
+   ============================================================ */
+.confirm-dialog p {
+  white-space: pre-line;
+}
+
+.nav-badge {
+  margin-left: auto;
+  min-width: 20px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--accent-light);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.stat-link {
+  text-decoration: none;
+  color: inherit;
+}
+.stat-card:nth-child(6) .stat-icon {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.trash-banner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--warning);
+  border-radius: var(--radius-md);
+  background: var(--warning-soft);
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.trash-banner strong {
+  color: var(--ink);
+}
+.trash-banner-icon {
+  display: flex;
+  color: var(--warning);
+  margin-top: 2px;
+}
+
+.trash-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.trash-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.trash-filter select {
+  min-width: 220px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+}
+
+.trash-table {
+  min-width: 860px;
+}
+.trash-table tbody td {
+  white-space: normal;
+  vertical-align: middle;
+}
+.trash-record {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+.trash-status {
+  min-width: 190px;
+  max-width: 300px;
+}
+.trash-reason {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+.trash-table .col-actions {
+  flex-wrap: wrap;
+}
+.row-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.trash-table .badge {
+  text-transform: none;
+  margin-top: 4px;
+}
+
+.details-dialog {
+  width: min(520px, calc(100vw - 32px));
+}
+.details-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 16px;
+  margin: 0 0 18px;
+  max-height: 55vh;
+  overflow: auto;
+  font-size: 13.5px;
+}
+.details-list dt {
+  color: var(--muted);
+  font-weight: 600;
+}
+.details-list dd {
+  margin: 0;
+  color: var(--ink);
+  word-break: break-word;
+}
+.trash-reason-block {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  margin: 0 0 18px;
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 13px;
+}
+.trash-reason-block svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+@media (max-width: 860px) {
+  .trash-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .trash-filter select {
+    width: 100%;
+  }
+}
