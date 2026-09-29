@@ -68,7 +68,8 @@ function initDatabase() {
       }
 
       db.run(CESTINO_SQL, (err) => {
-        if (err) console.error("Errore creazione tabella cestino:", err.message);
+        if (err)
+          console.error("Errore creazione tabella cestino:", err.message);
       });
       db.run(
         "CREATE INDEX IF NOT EXISTS idx_cestino_expires ON cestino(expires_at)",

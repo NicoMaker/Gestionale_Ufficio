@@ -37,9 +37,15 @@ router.get(
   ),
 );
 
-router.get("/count", handle(() => Trash.count()));
+router.get(
+  "/count",
+  handle(() => Trash.count()),
+);
 
-router.post("/restore-all", handle(() => Trash.restoreAll()));
+router.post(
+  "/restore-all",
+  handle(() => Trash.restoreAll()),
+);
 
 router.post(
   "/:id/restore",
@@ -51,6 +57,9 @@ router.delete(
   handle((req) => Trash.deletePermanently(Number(req.params.id))),
 );
 
-router.delete("/", handle(() => Trash.emptyTrash()));
+router.delete(
+  "/",
+  handle(() => Trash.emptyTrash()),
+);
 
 module.exports = router;

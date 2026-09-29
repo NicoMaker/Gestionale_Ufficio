@@ -193,11 +193,13 @@ const Trash = (() => {
 
     content.querySelectorAll("tr[data-id]").forEach((tr) => {
       const item = result.data.find((i) => String(i.id) === tr.dataset.id);
-      tr.querySelector('[data-action="details"]').addEventListener("click", () =>
-        showDetails(item),
+      tr.querySelector('[data-action="details"]').addEventListener(
+        "click",
+        () => showDetails(item),
       );
-      tr.querySelector('[data-action="restore"]').addEventListener("click", () =>
-        restoreOne(item),
+      tr.querySelector('[data-action="restore"]').addEventListener(
+        "click",
+        () => restoreOne(item),
       );
       tr.querySelector('[data-action="delete"]').addEventListener("click", () =>
         deleteForever(item),
@@ -328,7 +330,10 @@ const Trash = (() => {
   function fmtDate(iso) {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "—";
-    return d.toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" });
+    return d.toLocaleString("it-IT", {
+      dateStyle: "short",
+      timeStyle: "short",
+    });
   }
 
   function countdown(seconds) {
@@ -336,7 +341,11 @@ const Trash = (() => {
     const hours = Math.floor(seconds / 3600);
     const days = Math.floor(seconds / 86400);
     if (seconds < 3600) return { text: "tra meno di un'ora", cls: "danger" };
-    if (days < 1) return { text: `tra ${hours} or${hours === 1 ? "a" : "e"}`, cls: "danger" };
+    if (days < 1)
+      return {
+        text: `tra ${hours} or${hours === 1 ? "a" : "e"}`,
+        cls: "danger",
+      };
     const cls = days <= 3 ? "warn" : "neutral";
     return { text: `tra ${days} giorn${days === 1 ? "o" : "i"}`, cls };
   }

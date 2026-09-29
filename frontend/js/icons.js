@@ -60,7 +60,9 @@ const Icons = (() => {
     restore: stroke(
       '<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5"/><path d="M3.5 3.5v5h5"/>',
     ),
-    clock: stroke('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+    clock: stroke(
+      '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+    ),
     eye: stroke(
       '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/>',
     ),

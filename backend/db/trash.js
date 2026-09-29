@@ -183,7 +183,10 @@ function moveToTrash(tableName, id) {
       ],
     );
     await run(`DELETE FROM ${table.name} WHERE id = ?`, [row.id]);
-    return { success: true, expires_at: new Date(now + RETENTION_DAYS * DAY_MS).toISOString() };
+    return {
+      success: true,
+      expires_at: new Date(now + RETENTION_DAYS * DAY_MS).toISOString(),
+    };
   });
 }
 
@@ -258,7 +261,13 @@ async function countDependentsInTrash(entry) {
       `SELECT COUNT(*) AS c FROM cestino
         WHERE table_name = ? AND json_extract(data, '$.' || ?) = ?
           AND NOT (table_name = ? AND record_id = ?)`,
-      [table.name, field.name, entry.record_id, entry.table_name, entry.record_id],
+      [
+        table.name,
+        field.name,
+        entry.record_id,
+        entry.table_name,
+        entry.record_id,
+      ],
     );
     total += row.c;
   }
@@ -350,7 +359,12 @@ function restoreAll() {
         motivo: check.motivo,
       });
     }
-    return { total, restored, skipped: entries.length, skipped_details: skippedDetails };
+    return {
+      total,
+      restored,
+      skipped: entries.length,
+      skipped_details: skippedDetails,
+    };
   });
 }
 
@@ -439,10 +453,14 @@ async function list({ page = 1, limit = 25, q = "", table = "" } = {}) {
       record_id: entry.record_id,
       label: entry.label,
       data: parseData(entry),
-      fields: t ? t.fields.map((f) => ({ name: f.name, label: f.label, type: f.type })) : [],
+      fields: t
+        ? t.fields.map((f) => ({ name: f.name, label: f.label, type: f.type }))
+        : [],
       deleted_at: entry.deleted_at,
       expires_at: entry.expires_at,
-      secondi_rimanenti: Math.round((new Date(entry.expires_at).getTime() - now) / 1000),
+      secondi_rimanenti: Math.round(
+        (new Date(entry.expires_at).getTime() - now) / 1000,
+      ),
       restorable: check.restorable,
       missing: check.missing,
       motivo: check.motivo,
