@@ -65,7 +65,8 @@ router.get("/:table", (req, res) => {
   // Ordinamento: colonna in whitelist (schema) + direzione, mai input libero nel SQL
   const sortable = new Set(["id", ...table.fields.map((f) => f.name)]);
   const sortBy = sortable.has(req.query.sort) ? req.query.sort : "id";
-  const sortDir = String(req.query.dir).toLowerCase() === "asc" ? "ASC" : "DESC";
+  const sortDir =
+    String(req.query.dir).toLowerCase() === "asc" ? "ASC" : "DESC";
 
   const textFields = table.fields.filter((f) =>
     ["text", "textarea", "select"].includes(f.type),

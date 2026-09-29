@@ -21,7 +21,9 @@
 
     // Scorciatoia: "/" porta il focus sulla ricerca
     document.addEventListener("keydown", (e) => {
-      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName);
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(
+        document.activeElement?.tagName,
+      );
       const search = document.getElementById("search-input");
       if (e.key === "/" && !typing && search.offsetParent) {
         e.preventDefault();

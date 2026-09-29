@@ -53,7 +53,9 @@ const Icons = (() => {
     "chevron-right": stroke('<path d="m9.5 5 7 7-7 7"/>'),
     x: stroke('<path d="M5 5 19 19M19 5 5 19"/>'),
     menu: stroke('<path d="M4 6.5h16M4 12h16M4 17.5h16"/>'),
-    sun: stroke('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>'),
+    sun: stroke(
+      '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>',
+    ),
     moon: stroke('<path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/>'),
     inbox: stroke(
       '<path d="M4 12.5h4.3l1.4 2.5h4.6l1.4-2.5H20"/><path d="M5.7 5 4 12.5v5A1.5 1.5 0 0 0 5.5 19h13a1.5 1.5 0 0 0 1.5-1.5v-5L18.3 5a1.7 1.7 0 0 0-1.6-1.1H7.3A1.7 1.7 0 0 0 5.7 5Z"/>',

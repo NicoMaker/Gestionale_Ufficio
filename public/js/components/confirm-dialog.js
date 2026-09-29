@@ -4,7 +4,12 @@
  * Uso: const ok = await ConfirmDialog.ask({ title, message });
  */
 const ConfirmDialog = (() => {
-  function ask({ title = "Conferma", message = "", confirmLabel = "Elimina", danger = true } = {}) {
+  function ask({
+    title = "Conferma",
+    message = "",
+    confirmLabel = "Elimina",
+    danger = true,
+  } = {}) {
     return new Promise((resolve) => {
       const dlg = document.createElement("dialog");
       dlg.className = "confirm-dialog";
@@ -19,9 +24,9 @@ const ConfirmDialog = (() => {
       dlg.querySelector("p").textContent = message;
       dlg.querySelector('[value="ok"]').textContent = confirmLabel;
 
-      dlg.querySelectorAll("button").forEach((b) =>
-        b.addEventListener("click", () => dlg.close(b.value)),
-      );
+      dlg
+        .querySelectorAll("button")
+        .forEach((b) => b.addEventListener("click", () => dlg.close(b.value)));
       dlg.addEventListener("click", (e) => {
         if (e.target === dlg) dlg.close("cancel"); // click sul backdrop
       });

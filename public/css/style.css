@@ -941,7 +941,6 @@ table.data-table {
   }
 }
 
-
 /* ============================================================
    Modernizzazione: tema scuro, ordinamento, skeleton, dialog
    ============================================================ */
@@ -1000,13 +999,22 @@ table.data-table {
   height: 46px;
   margin: 10px 16px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, var(--surface-alt) 25%, var(--surface-hover) 37%, var(--surface-alt) 63%);
+  background: linear-gradient(
+    90deg,
+    var(--surface-alt) 25%,
+    var(--surface-hover) 37%,
+    var(--surface-alt) 63%
+  );
   background-size: 400% 100%;
   animation: skeleton 1.3s ease infinite;
 }
 @keyframes skeleton {
-  from { background-position: 100% 50%; }
-  to { background-position: 0 50%; }
+  from {
+    background-position: 100% 50%;
+  }
+  to {
+    background-position: 0 50%;
+  }
 }
 
 /* dialog di conferma */
@@ -1047,5 +1055,7 @@ table.data-table {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .skeleton-row { animation: none; }
+  .skeleton-row {
+    animation: none;
+  }
 }

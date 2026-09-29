@@ -5,12 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gestionale</title>
     <meta name="color-scheme" content="light dark" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='18' font-weight='800' text-anchor='middle' fill='white' font-family='sans-serif'%3EG%3C/text%3E%3C/svg%3E" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='18' font-weight='800' text-anchor='middle' fill='white' font-family='sans-serif'%3EG%3C/text%3E%3C/svg%3E"
+    />
     <script>
       (function () {
         try {
           var t = localStorage.getItem("gestionale-theme");
-          if (!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          if (!t)
+            t = matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
           document.documentElement.dataset.theme = t;
         } catch (e) {}
       })();
@@ -58,7 +64,12 @@
                 placeholder="Cerca..."
               />
             </div>
-            <button id="theme-toggle" class="icon-btn always" type="button" aria-label="Cambia tema"></button>
+            <button
+              id="theme-toggle"
+              class="icon-btn always"
+              type="button"
+              aria-label="Cambia tema"
+            ></button>
             <button id="btn-new" class="btn btn-primary" type="button">
               <span class="btn-new-icon"></span><span>Nuovo</span>
             </button>

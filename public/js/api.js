@@ -25,7 +25,10 @@ const API = (() => {
   return {
     getMeta: () => request("/api/_meta"),
 
-    list: (table, { page = 1, limit = 25, q = "", sort = "", dir = "" } = {}) => {
+    list: (
+      table,
+      { page = 1, limit = 25, q = "", sort = "", dir = "" } = {},
+    ) => {
       const params = new URLSearchParams({ page, limit, q });
       if (sort) {
         params.set("sort", sort);

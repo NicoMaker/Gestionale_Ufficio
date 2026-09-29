@@ -97,7 +97,11 @@ const TableView = (() => {
 
     const th = (name, label) => {
       const on = currentSort === name;
-      const aria = on ? (currentDir === "asc" ? "ascending" : "descending") : "none";
+      const aria = on
+        ? currentDir === "asc"
+          ? "ascending"
+          : "descending"
+        : "none";
       const caret = on ? (currentDir === "asc" ? "▲" : "▼") : "";
       return `<th class="sortable${on ? " sorted" : ""}" data-sort="${name}" aria-sort="${aria}" tabindex="0">${label}<span class="sort-caret">${caret}</span></th>`;
     };
@@ -200,7 +204,8 @@ const TableView = (() => {
     content.querySelectorAll("th[data-sort]").forEach((th) => {
       const go = () => {
         const name = th.dataset.sort;
-        currentDir = currentSort === name && currentDir === "asc" ? "desc" : "asc";
+        currentDir =
+          currentSort === name && currentDir === "asc" ? "desc" : "asc";
         currentSort = name;
         currentPage = 1;
         load();
