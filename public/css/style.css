@@ -940,3 +940,112 @@ table.data-table {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ============================================================
+   Modernizzazione: tema scuro, ordinamento, skeleton, dialog
+   ============================================================ */
+.icon-btn.always {
+  display: inline-flex;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e0f1c;
+  --surface: #161829;
+  --surface-alt: #1c1e33;
+  --surface-hover: #23264a;
+  --border: #2a2d4a;
+  --border-soft: #22243c;
+  --ink: #eceefa;
+  --ink-soft: #aeb2cf;
+  --muted: #8489a8;
+  --accent-soft: #26285c;
+  --accent-2-soft: #0f3a2d;
+  --danger-soft: #3b1421;
+  --warning-soft: #3b2a10;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.25);
+  --shadow-card-hover: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+:root[data-theme="dark"] .topbar {
+  background: rgba(22, 24, 41, 0.82);
+}
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+}
+:root[data-theme="dark"] .group-card li a:hover,
+:root[data-theme="dark"] .stat-icon {
+  color: #a5a8ff;
+}
+
+/* colonne ordinabili */
+.data-table thead th.sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.12s ease;
+}
+.data-table thead th.sortable:hover,
+.data-table thead th.sorted {
+  color: var(--accent);
+}
+.sort-caret {
+  display: inline-block;
+  min-width: 1em;
+  margin-left: 4px;
+  font-size: 9px;
+}
+
+/* skeleton di caricamento */
+.skeleton-row {
+  height: 46px;
+  margin: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--surface-alt) 25%, var(--surface-hover) 37%, var(--surface-alt) 63%);
+  background-size: 400% 100%;
+  animation: skeleton 1.3s ease infinite;
+}
+@keyframes skeleton {
+  from { background-position: 100% 50%; }
+  to { background-position: 0 50%; }
+}
+
+/* dialog di conferma */
+.confirm-dialog {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-pop);
+  padding: 24px;
+  width: min(420px, calc(100vw - 32px));
+}
+.confirm-dialog::backdrop {
+  background: rgba(10, 9, 24, 0.55);
+  backdrop-filter: blur(3px);
+}
+.confirm-dialog h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 17px;
+}
+.confirm-dialog p {
+  margin: 0 0 22px;
+  color: var(--ink-soft);
+}
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.btn-danger-solid {
+  background: var(--danger);
+  border-color: transparent;
+  color: #fff;
+}
+.btn-danger-solid:hover {
+  background: #be123c;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-row { animation: none; }
+}

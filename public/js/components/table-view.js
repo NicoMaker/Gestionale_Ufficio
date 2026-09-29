@@ -10,6 +10,8 @@ const TableView = (() => {
   let currentTable = null;
   let currentPage = 1;
   let currentQuery = "";
+  let currentSort = "id";
+  let currentDir = "desc";
   let searchDebounce = null;
   let fkLabelCache = {}; // { tableName: Map(id -> label) }
 
@@ -17,6 +19,8 @@ const TableView = (() => {
     currentTable = table;
     currentPage = 1;
     currentQuery = "";
+    currentSort = "id";
+    currentDir = "desc";
     searchInput.value = "";
     searchInput.style.display = "";
     btnNew.style.display = "";
@@ -35,16 +39,22 @@ const TableView = (() => {
   }
 
   async function load() {
-    content.innerHTML = '<div class="empty-state">Caricamento…</div>';
+    content.innerHTML =
+      '<div class="table-wrap" aria-busy="true">' +
+      '<div class="skeleton-row"></div>'.repeat(8) +
+      "</div>";
     try {
       const result = await API.list(currentTable.name, {
         page: currentPage,
         limit: 25,
         q: currentQuery,
+        sort: currentSort,
+        dir: currentDir,
       });
       await preloadFkLabels(result.data);
       content.innerHTML = buildTableHTML(result);
       wireRowActions();
+      wireSorting();
       wirePagination(result);
     } catch (err) {
       content.innerHTML = `<div class="empty-state"><div class="empty-title">Errore</div>${escapeHtml(err.message)}</div>`;
@@ -85,10 +95,16 @@ const TableView = (() => {
         </div>`;
     }
 
+    const th = (name, label) => {
+      const on = currentSort === name;
+      const aria = on ? (currentDir === "asc" ? "ascending" : "descending") : "none";
+      const caret = on ? (currentDir === "asc" ? "▲" : "▼") : "";
+      return `<th class="sortable${on ? " sorted" : ""}" data-sort="${name}" aria-sort="${aria}" tabindex="0">${label}<span class="sort-caret">${caret}</span></th>`;
+    };
     const head = `
       <tr>
-        <th>ID</th>
-        ${visibleFields.map((f) => `<th>${f.label}</th>`).join("")}
+        ${th("id", "ID")}
+        ${visibleFields.map((f) => th(f.name, f.label)).join("")}
         <th>Azioni</th>
       </tr>`;
 
@@ -180,8 +196,31 @@ const TableView = (() => {
     });
   }
 
-  function confirmDelete(id) {
-    if (!window.confirm(`Eliminare definitivamente il record #${id}?`)) return;
+  function wireSorting() {
+    content.querySelectorAll("th[data-sort]").forEach((th) => {
+      const go = () => {
+        const name = th.dataset.sort;
+        currentDir = currentSort === name && currentDir === "asc" ? "desc" : "asc";
+        currentSort = name;
+        currentPage = 1;
+        load();
+      };
+      th.addEventListener("click", go);
+      th.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          go();
+        }
+      });
+    });
+  }
+
+  async function confirmDelete(id) {
+    const ok = await ConfirmDialog.ask({
+      title: "Eliminare il record?",
+      message: `Il record #${id} verrà eliminato definitivamente.`,
+    });
+    if (!ok) return;
     API.remove(currentTable.name, id)
       .then(() => {
         Toast.success("Record eliminato");

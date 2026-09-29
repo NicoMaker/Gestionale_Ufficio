@@ -17,6 +17,17 @@
 
   async function start() {
     injectStaticIcons();
+    Theme.init();
+
+    // Scorciatoia: "/" porta il focus sulla ricerca
+    document.addEventListener("keydown", (e) => {
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName);
+      const search = document.getElementById("search-input");
+      if (e.key === "/" && !typing && search.offsetParent) {
+        e.preventDefault();
+        search.focus();
+      }
+    });
     try {
       meta = await API.getMeta();
     } catch (err) {
