@@ -18,27 +18,48 @@ Gestionale aziendale completo — Node.js, Express, SQLite3, frontend a componen
 ## Struttura del progetto
 
 ```
-gestionale/
-├── server.js               # avvio server Express
-├── package.json
-├── db/
-│   ├── schema.js            # DEFINIZIONE CENTRALE delle 50 tabelle (campi, tipi, relazioni)
-│   ├── init.js               # crea il database SQLite a partire dallo schema
-│   └── gestionale.db    # file del database (creato al primo avvio)
-├── routes/
-│   └── api.js                # API REST generiche (GET/POST/PUT/DELETE) per tutte le tabelle
-└── public/                   # frontend servito da Express
-    ├── index.html
-    ├── css/style.css
-    └── js/
-        ├── api.js                    # chiamate fetch verso il backend
-        ├── app.js                    # routing e inizializzazione app
-        └── components/
-            ├── sidebar.js             # menu di navigazione a moduli
-            ├── dashboard.js           # schermata iniziale con statistiche
-            ├── table-view.js          # elenco, ricerca, paginazione, azioni
-            ├── form-modal.js          # form dinamico di creazione/modifica
-            └── toast.js               # notifiche
+gestionale_Ufficio/
+│
+├── backend/                          # 🖥️ Server Express + Database SQLite
+│   │
+│   ├── server.js                     # Avvio server Express
+│   ├── package.json                  # Dipendenze e script backend
+│   ├── package-lock.json             # Lock delle versioni dipendenze
+│   │
+│   ├── db/                           # 🗄️ Database SQLite
+│   │   ├── schema.js                 # DEFINIZIONE CENTRALE delle 50 tabelle (campi, tipi, relazioni)
+│   │   ├── init.js                   # Crea il database SQLite a partire dallo schema
+│   │   ├── seed.js                   # Popola il DB con dati di esempio iniziali
+│   │   └── gestionale.db             # File del database (creato al primo avvio)
+│   │
+│   ├── routes/                       # 🛣️ API REST
+│   │   └── api.js                    # API REST generiche (GET/POST/PUT/DELETE) per tutte le tabelle
+│   │
+│   └── docs/                         # 📚 Documentazione tecnica (solo backend)
+│       ├── generate-er-diagram.js    # Script per generare il diagramma ER
+│       ├── schema.mmd                # Sorgente Mermaid del diagramma ER
+│       └── schema.png                # Diagramma ER esportato come immagine
+│
+└── frontend/                         # 🎨 Frontend servito da Express
+    │
+    ├── index.html                    # Pagina principale SPA
+    │
+    ├── css/                          # 💅 Stili
+    │   └── style.css                 # Foglio di stile principale
+    │
+    └── js/                           # ⚙️ Logica frontend
+        ├── api.js                    # Chiamate fetch verso il backend
+        ├── icons.js                  # Set di icone SVG/emoji riutilizzabili
+        ├── app.js                    # Routing e inizializzazione app
+        │
+        └── components/               # 🧩 Componenti UI modulari
+            ├── sidebar.js            # Menu di navigazione a moduli
+            ├── dashboard.js          # Schermata iniziale con statistiche
+            ├── table-view.js         # Elenco, ricerca, paginazione, azioni
+            ├── form-modal.js         # Form dinamico di creazione/modifica
+            ├── confirm-dialog.js     # Dialog di conferma per azioni distruttive
+            ├── theme.js              # Gestione tema chiaro/scuro
+            └── toast.js              # Notifiche a comparsa
 ```
 
 ## Come avviarlo

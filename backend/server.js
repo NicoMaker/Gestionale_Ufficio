@@ -29,12 +29,12 @@ app.get("/api/health", (req, res) =>
 app.use("/api", apiRouter);
 
 // Frontend statico (HTML/CSS/JS a componenti)
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "../frontend")));
 
 // Qualsiasi altra rotta non-API serve l'app (routing lato client)
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/api")) return next();
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "../frontend", "index.html"));
 });
 
 // Gestore errori centralizzato
