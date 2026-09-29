@@ -3,6 +3,7 @@
  *  - data di eliminazione e DATA DI ELIMINAZIONE DEFINITIVA (con conto alla rovescia)
  *  - stato di ripristino (ripristinabile / non ripristinabile + motivo)
  *  - azioni: dettagli, ripristina, elimina definitivamente
+ *  - SELEZIONE MULTIPLA: ripristina / elimina definitivamente più elementi insieme
  *  - azioni globali: "Ripristina tutto" (solo ciò che si può) e "Svuota cestino"
  *
  * Regola di ripristino: un record torna attivo solo se tutti i record a cui fa
@@ -20,12 +21,14 @@ const Trash = (() => {
   let tableFilter = "";
   let searchDebounce = null;
   let lastResult = null;
+  const selected = new Set(); // id degli elementi selezionati (anche tra pagine)
 
   async function render(metaData) {
     meta = metaData;
     page = 1;
     query = "";
     tableFilter = "";
+    selected.clear();
     searchInput.value = "";
     searchInput.placeholder = "Cerca nel cestino...";
     searchInput.style.display = "";
@@ -122,11 +125,12 @@ const Trash = (() => {
 
     const rows = data.map(rowHTML).join("");
 
-    return `${banner}${toolbar}
+    return `${banner}${toolbar}<div id="bulk-bar-slot"></div>
       <div class="table-wrap">
         <table class="data-table trash-table">
           <thead>
             <tr>
+              <th class="col-check"><input type="checkbox" id="trash-check-all" aria-label="Seleziona tutti in pagina" /></th>
               <th>Record</th>
               <th>Eliminato il</th>
               <th>Eliminazione definitiva</th>
@@ -154,7 +158,8 @@ const Trash = (() => {
          <div class="trash-reason" title="${esc(item.motivo || "")}">${esc(item.motivo || "")}</div>`;
 
     return `
-      <tr data-id="${item.id}">
+      <tr data-id="${item.id}" class="${selected.has(item.id) ? "row-selected" : ""}">
+        <td class="col-check"><input type="checkbox" class="row-check" ${selected.has(item.id) ? "checked" : ""} aria-label="Seleziona ${esc(item.label)}" /></td>
         <td>
           <div class="trash-record">
             <span class="badge neutral">${esc(item.table_label)}</span>
@@ -191,6 +196,38 @@ const Trash = (() => {
       ?.addEventListener("click", restoreAll);
     content.querySelector("#btn-empty")?.addEventListener("click", emptyTrash);
 
+    // ---- selezione multipla
+    const checkAll = content.querySelector("#trash-check-all");
+    const pageIds = result.data.map((i) => i.id);
+    const syncCheckAll = () => {
+      if (!checkAll) return;
+      const n = pageIds.filter((id) => selected.has(id)).length;
+      checkAll.checked = n > 0 && n === pageIds.length;
+      checkAll.indeterminate = n > 0 && n < pageIds.length;
+    };
+    checkAll?.addEventListener("change", () => {
+      pageIds.forEach((id) =>
+        checkAll.checked ? selected.add(id) : selected.delete(id),
+      );
+      content.querySelectorAll("tr[data-id]").forEach((tr) => {
+        const on = selected.has(Number(tr.dataset.id));
+        tr.querySelector(".row-check").checked = on;
+        tr.classList.toggle("row-selected", on);
+      });
+      renderBulkBar();
+    });
+    content.querySelectorAll("tr[data-id]").forEach((tr) => {
+      tr.querySelector(".row-check").addEventListener("change", (e) => {
+        const id = Number(tr.dataset.id);
+        e.target.checked ? selected.add(id) : selected.delete(id);
+        tr.classList.toggle("row-selected", e.target.checked);
+        syncCheckAll();
+        renderBulkBar();
+      });
+    });
+    syncCheckAll();
+    renderBulkBar();
+
     content.querySelectorAll("tr[data-id]").forEach((tr) => {
       const item = result.data.find((i) => String(i.id) === tr.dataset.id);
       tr.querySelector('[data-action="details"]').addEventListener(
@@ -220,9 +257,95 @@ const Trash = (() => {
       });
   }
 
+  // ----------------------------------------------------- azioni multiple
+  function renderBulkBar() {
+    const slot = content.querySelector("#bulk-bar-slot");
+    if (!slot) return;
+    if (selected.size === 0) {
+      slot.innerHTML = "";
+      return;
+    }
+    slot.innerHTML = `
+      <div class="bulk-bar" role="region" aria-label="Azioni sulla selezione">
+        <strong>${selected.size} selezionat${selected.size === 1 ? "o" : "i"}</strong>
+        <div class="bulk-actions">
+          <button class="btn" id="bulk-restore">${Icons.html("restore")}<span>Ripristina selezionati</span></button>
+          <button class="btn btn-danger" id="bulk-delete">${Icons.html("trash")}<span>Elimina definitivamente</span></button>
+          <button class="btn btn-ghost" id="bulk-clear">Deseleziona</button>
+        </div>
+      </div>`;
+    slot.querySelector("#bulk-restore").addEventListener("click", restoreSelected);
+    slot.querySelector("#bulk-delete").addEventListener("click", deleteSelected);
+    slot.querySelector("#bulk-clear").addEventListener("click", () => {
+      selected.clear();
+      load();
+    });
+  }
+
+  async function restoreSelected() {
+    const ids = [...selected];
+    const ok = await ConfirmDialog.ask({
+      title: `Ripristinare ${ids.length} elementi?`,
+      message:
+        "Verranno ripristinati quelli che possono esserlo (i padri prima dei figli, anche se selezionati insieme). " +
+        "Gli elementi con riferimenti mancanti resteranno nel cestino.",
+      confirmLabel: "Ripristina selezionati",
+      danger: false,
+    });
+    if (!ok) return;
+    try {
+      const r = await API.trashRestoreMany(ids);
+      if (r.restored === 0) {
+        Toast.info("Nessuno dei selezionati è ripristinabile al momento");
+      } else if (r.skipped > 0) {
+        Toast.success(
+          `Ripristinati ${r.restored} su ${r.total}. ${r.skipped} non ripristinabili sono rimasti nel cestino.`,
+        );
+      } else {
+        Toast.success(`Ripristinati tutti i ${r.restored} elementi selezionati`);
+      }
+      // restano selezionati solo quelli non ripristinati
+      selected.clear();
+      r.skipped_details.forEach((d) => selected.add(d.id));
+    } catch (err) {
+      Toast.error(err.message);
+    }
+    load();
+  }
+
+  async function deleteSelected() {
+    const ids = [...selected];
+    const items = (lastResult?.data || []).filter((i) => selected.has(i.id));
+    const withDeps = items.some((i) => i.dipendenti_nel_cestino > 0);
+    const ok = await ConfirmDialog.ask({
+      title: `Eliminare definitivamente ${ids.length} elementi?`,
+      message:
+        "Verranno eliminati per sempre, senza possibilità di ripristino." +
+        (withDeps
+          ? "\n\nAttenzione: altri record nel cestino che dipendono da questi non potranno più essere ripristinati."
+          : ""),
+      confirmLabel: "Elimina definitivamente",
+    });
+    if (!ok) return;
+    try {
+      const r = await API.trashDeleteMany(ids);
+      Toast.success(
+        `${r.deleted} element${r.deleted === 1 ? "o eliminato" : "i eliminati"} definitivamente` +
+          (r.dipendenti_non_ripristinabili > 0
+            ? ` — ${r.dipendenti_non_ripristinabili} nel cestino non più ripristinabili`
+            : ""),
+      );
+      selected.clear();
+    } catch (err) {
+      Toast.error(err.message);
+    }
+    load();
+  }
+
   async function restoreOne(item) {
     try {
       const r = await API.trashRestore(item.id);
+      selected.delete(item.id);
       Toast.success(`Record ripristinato in "${r.table_label}"`);
     } catch (err) {
       Toast.error(err.message);
@@ -242,6 +365,7 @@ const Trash = (() => {
     if (!ok) return;
     try {
       const r = await API.trashRestoreAll();
+      selected.clear();
       if (r.restored === 0) {
         Toast.info("Nessun record ripristinabile al momento");
       } else if (r.skipped > 0) {
@@ -272,6 +396,7 @@ const Trash = (() => {
     if (!ok) return;
     try {
       await API.trashDelete(item.id);
+      selected.delete(item.id);
       Toast.success("Record eliminato definitivamente");
     } catch (err) {
       Toast.error(err.message);
@@ -289,6 +414,7 @@ const Trash = (() => {
     if (!ok) return;
     try {
       const r = await API.trashEmpty();
+      selected.clear();
       Toast.success(`Cestino svuotato (${r.deleted} elementi eliminati)`);
     } catch (err) {
       Toast.error(err.message);

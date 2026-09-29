@@ -14,9 +14,11 @@ const TableView = (() => {
   let currentDir = "desc";
   let searchDebounce = null;
   let fkLabelCache = {}; // { tableName: Map(id -> label) }
+  const selected = new Set(); // id selezionati (anche tra pagine)
 
   async function render(table) {
     currentTable = table;
+    selected.clear();
     fkLabelCache = {}; // le etichette FK possono cambiare (ripristini, nuovi record)
     currentPage = 1;
     currentQuery = "";
@@ -55,6 +57,7 @@ const TableView = (() => {
       await preloadFkLabels(result.data);
       content.innerHTML = buildTableHTML(result);
       wireRowActions();
+      wireSelection(result.data.map((r) => r.id));
       wireSorting();
       wirePagination(result);
     } catch (err) {
@@ -108,6 +111,7 @@ const TableView = (() => {
     };
     const head = `
       <tr>
+        <th class="col-check"><input type="checkbox" id="check-all" aria-label="Seleziona tutti in pagina" /></th>
         ${th("id", "ID")}
         ${visibleFields.map((f) => th(f.name, f.label)).join("")}
         <th>Azioni</th>
@@ -116,7 +120,8 @@ const TableView = (() => {
     const rows = data
       .map(
         (row) => `
-      <tr data-id="${row.id}">
+      <tr data-id="${row.id}" class="${selected.has(row.id) ? "row-selected" : ""}">
+        <td class="col-check"><input type="checkbox" class="row-check" ${selected.has(row.id) ? "checked" : ""} aria-label="Seleziona record ${row.id}" /></td>
         <td>${row.id}</td>
         ${visibleFields.map((f) => `<td>${renderCell(f, row)}</td>`).join("")}
         <td class="col-actions">
@@ -128,6 +133,7 @@ const TableView = (() => {
       .join("");
 
     return `
+      <div id="bulk-bar-slot"></div>
       <div class="table-wrap">
         <table class="data-table">
           <thead>${head}</thead>
@@ -201,6 +207,110 @@ const TableView = (() => {
     });
   }
 
+  // ------------------------------------------------ selezione multipla
+  function wireSelection(pageIds) {
+    const checkAll = content.querySelector("#check-all");
+    const sync = () => {
+      if (!checkAll) return;
+      const n = pageIds.filter((id) => selected.has(id)).length;
+      checkAll.checked = n > 0 && n === pageIds.length;
+      checkAll.indeterminate = n > 0 && n < pageIds.length;
+    };
+    checkAll?.addEventListener("change", () => {
+      pageIds.forEach((id) =>
+        checkAll.checked ? selected.add(id) : selected.delete(id),
+      );
+      content.querySelectorAll("tr[data-id]").forEach((tr) => {
+        const on = selected.has(Number(tr.dataset.id));
+        tr.querySelector(".row-check").checked = on;
+        tr.classList.toggle("row-selected", on);
+      });
+      renderBulkBar();
+    });
+    content.querySelectorAll("tr[data-id]").forEach((tr) => {
+      tr.querySelector(".row-check").addEventListener("change", (e) => {
+        const id = Number(tr.dataset.id);
+        e.target.checked ? selected.add(id) : selected.delete(id);
+        tr.classList.toggle("row-selected", e.target.checked);
+        sync();
+        renderBulkBar();
+      });
+    });
+    sync();
+    renderBulkBar();
+  }
+
+  function renderBulkBar() {
+    const slot = content.querySelector("#bulk-bar-slot");
+    if (!slot) return;
+    if (selected.size === 0) {
+      slot.innerHTML = "";
+      return;
+    }
+    slot.innerHTML = `
+      <div class="bulk-bar" role="region" aria-label="Azioni sulla selezione">
+        <strong>${selected.size} selezionat${selected.size === 1 ? "o" : "i"}</strong>
+        <div class="bulk-actions">
+          <button class="btn btn-danger" id="bulk-delete">${Icons.html("trash")}<span>Sposta nel cestino</span></button>
+          <button class="btn btn-ghost" id="bulk-clear">Deseleziona</button>
+        </div>
+      </div>`;
+    slot.querySelector("#bulk-delete").addEventListener("click", confirmBulkDelete);
+    slot.querySelector("#bulk-clear").addEventListener("click", () => {
+      selected.clear();
+      load();
+    });
+  }
+
+  // Eliminazione multipla = spostamento nel cestino. Vale la stessa regola del
+  // singolo: solo i record con collegamenti = 0; gli altri vengono saltati.
+  async function confirmBulkDelete() {
+    const ids = [...selected];
+    const days = AppConfig.retentionDays;
+    const ok = await ConfirmDialog.ask({
+      title: `Spostare ${ids.length} record nel cestino?`,
+      message:
+        `I record potranno essere ripristinati per ${days} giorni, poi verranno eliminati definitivamente in automatico.\n\n` +
+        "I record collegati ad altri record (collegamenti > 0) NON verranno eliminati: " +
+        "se selezioni insieme i record collegati e quelli che li usano, questi ultimi vengono eliminati per primi.",
+      confirmLabel: "Sposta nel cestino",
+    });
+    if (!ok) return;
+    try {
+      const r = await API.removeMany(currentTable.name, ids);
+      selected.clear();
+      r.blocked_items.forEach((b) => selected.add(b.id));
+      Sidebar.refreshTrashCount();
+      if (r.moved > 0) {
+        Toast.success(
+          `${r.moved} record spostat${r.moved === 1 ? "o" : "i"} nel cestino` +
+            (r.blocked > 0 ? ` — ${r.blocked} non eliminabili (collegati)` : ""),
+        );
+      }
+      if (r.blocked > 0) {
+        const dettaglio = r.blocked_items
+          .map(
+            (b) =>
+              `• #${b.id}: ` +
+              b.links.map((l) => `${l.table_label} (${l.field_label}): ${l.count}`).join(", "),
+          )
+          .join("\n");
+        await ConfirmDialog.ask({
+          title: "Alcuni record non sono stati eliminati",
+          message:
+            `${r.blocked} record hanno ancora record collegati:\n${dettaglio}\n\n` +
+            "Elimina o scollega prima i record collegati. Sono rimasti selezionati.",
+          confirmLabel: "Ho capito",
+          danger: false,
+          hideCancel: true,
+        });
+      }
+    } catch (err) {
+      Toast.error(err.message);
+    }
+    load();
+  }
+
   function wireSorting() {
     content.querySelectorAll("th[data-sort]").forEach((th) => {
       const go = () => {
@@ -259,6 +369,7 @@ const TableView = (() => {
     if (!ok) return;
     try {
       await API.remove(currentTable.name, id);
+      selected.delete(Number(id));
       Toast.success("Record spostato nel cestino");
       Sidebar.refreshTrashCount();
       load();

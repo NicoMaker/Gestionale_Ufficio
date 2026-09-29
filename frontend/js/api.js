@@ -59,6 +59,13 @@ const API = (() => {
     // Sposta il record nel cestino (bloccato con 409 se ha record collegati)
     remove: (table, id) => request(`/api/${table}/${id}`, { method: "DELETE" }),
 
+    // Elimina (sposta nel cestino) più record: { moved, blocked, blocked_items }
+    removeMany: (table, ids) =>
+      request(`/api/${table}/bulk-delete`, {
+        method: "POST",
+        body: JSON.stringify({ ids }),
+      }),
+
     // Record che referenziano questo record: { total, links: [...] }
     links: (table, id) => request(`/api/${table}/${id}/links`),
 
@@ -67,6 +74,17 @@ const API = (() => {
       const params = new URLSearchParams({ page, limit, q, table });
       return request(`/api/cestino?${params.toString()}`);
     },
+    trashSummary: () => request("/api/cestino/summary"),
+    trashRestoreMany: (ids) =>
+      request("/api/cestino/restore-selected", {
+        method: "POST",
+        body: JSON.stringify({ ids }),
+      }),
+    trashDeleteMany: (ids) =>
+      request("/api/cestino/delete-selected", {
+        method: "POST",
+        body: JSON.stringify({ ids }),
+      }),
     trashCount: () => request("/api/cestino/count"),
     trashRestore: (id) =>
       request(`/api/cestino/${id}/restore`, { method: "POST" }),

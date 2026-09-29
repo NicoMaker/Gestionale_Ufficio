@@ -30,6 +30,7 @@ gestionale_Ufficio/
 │   │
 │   ├── server.js                     # Avvio server Express
 │   ├── package.json                  # Dipendenze e script backend
+│   ├── tests/cestino.test.js         # ✅ Test automatici delle regole del cestino (npm test)
 │   ├── package-lock.json             # Lock delle versioni dipendenze
 │   │
 │   ├── db/                           # 🗄️ Database SQLite
@@ -97,6 +98,7 @@ Nel `package.json` del backend sono definiti i seguenti script:
 | **`dati`**     | `node db/seed.js`             | Esegue solo lo **script di seeding**: popola il database con dati di esempio realistici (clienti, prodotti, ordini, ecc.) senza avviare il server.       |
 | **`run_dati`** | `npm run dati && npm start`   | **Seeding + avvio produzione** in un colpo solo: prima popola il DB, poi avvia il server con `node server.js`.                                           |
 | **`dev_dati`** | `npm run dati && npm run dev` | **Seeding + avvio sviluppo** in un colpo solo: popola il DB e poi avvia il server con `nodemon` per lo sviluppo attivo.                                  |
+| **`test`**     | `node tests/cestino.test.js`  | Esegue i **test automatici** del cestino su un database temporaneo (i tuoi dati non vengono toccati).                                                    |
 
 ### 🎯 Quando usare quale
 
@@ -133,6 +135,8 @@ Ogni eliminazione passa dal cestino (menu laterale → **Cestino**, con contator
 | **Scadenza**               | Dopo **15 giorni** nel cestino l'elemento viene **eliminato definitivamente** in automatico. La pagina mostra la data esatta e il conto alla rovescia. |
 | **Ripristina tutto**       | Ripristina tutto ciò che si può (padri prima dei figli); il resto non viene toccato.               |
 | **Elimina / Svuota**       | Eliminazione definitiva di un elemento o di tutto il cestino (con avviso sui figli che non saranno più ripristinabili). |
+| **Selezione multipla**     | Checkbox nelle tabelle e nel cestino: sposta, ripristina o elimina **più record in una volta**, con le stesse regole (ciò che non si può viene saltato e spiegato). |
+| **Dashboard**              | Pannello **Cestino** in home con riepilogo (ripristinabili, in scadenza) e link alla pagina. |
 
 Il periodo di 15 giorni si cambia con la variabile d'ambiente `TRASH_RETENTION_DAYS`
 (es. `TRASH_RETENTION_DAYS=30 npm start`). Dettagli, esempi e API in
@@ -230,6 +234,9 @@ npm run dev_dati
 
 # 📊 Rigenera diagramma ER (da backend/)
 node docs/generate-er-diagram.js
+
+# ✅ Test automatici del cestino
+npm test
 
 # 🗑️ Cestino con scadenza personalizzata (default 15 giorni)
 TRASH_RETENTION_DAYS=30 npm start

@@ -250,6 +250,24 @@ router.get("/:table/:id/links", async (req, res) => {
 // Il record resta ripristinabile e viene eliminato definitivamente in automatico
 // dopo TRASH_RETENTION_DAYS giorni (default 15).
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// POST /api/:table/bulk-delete  { ids: [...] } -> sposta PIÙ record nel cestino.
+// Vale la stessa regola: solo i record con 0 collegamenti vengono eliminati,
+// gli altri vengono saltati e restituiti in `blocked_items`.
+// ---------------------------------------------------------------------------
+router.post("/:table/bulk-delete", async (req, res) => {
+  const table = getTableOr404(req, res);
+  if (!table) return;
+  try {
+    res.json(await Trash.moveManyToTrash(table.name, (req.body || {}).ids || []));
+  } catch (err) {
+    if (err instanceof Trash.HttpError) {
+      return res.status(err.status).json({ error: err.message, ...err.extra });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.delete("/:table/:id", async (req, res) => {
   const table = getTableOr404(req, res);
   if (!table) return;

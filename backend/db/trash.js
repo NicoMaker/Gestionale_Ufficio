@@ -29,6 +29,7 @@ const RETENTION_DAYS = Math.max(
 );
 const PURGE_INTERVAL_MS = 60 * 60 * 1000; // controllo scadenze ogni ora
 const DAY_MS = 24 * 60 * 60 * 1000;
+const MAX_BULK = 500; // massimo record per operazione multipla
 
 const TABLE_MAP = new Map(TABLES.map((t) => [t.name, t]));
 
@@ -154,38 +155,89 @@ function linksMessage(links) {
 // ---------------------------------------------------------------------------
 // SPOSTA NEL CESTINO
 // ---------------------------------------------------------------------------
+async function moveToTrashNoLock(table, id) {
+  const row = await get(`SELECT * FROM ${table.name} WHERE id = ?`, [id]);
+  if (!row) throw new HttpError(404, "Record non trovato");
+
+  const { total, links } = await getLinks(table.name, row.id);
+  if (total > 0) {
+    throw new HttpError(
+      409,
+      `Impossibile eliminare: il record è collegato a ${total} altr${total === 1 ? "o record" : "i record"}.\n${linksMessage(links)}\nElimina o scollega prima i record collegati.`,
+      { code: "COLLEGATO", links, total },
+    );
+  }
+
+  const now = Date.now();
+  const expires = new Date(now + RETENTION_DAYS * DAY_MS).toISOString();
+  await run(
+    `INSERT OR REPLACE INTO cestino (table_name, record_id, label, data, deleted_at, expires_at)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [
+      table.name,
+      row.id,
+      labelOf(table, row),
+      JSON.stringify(row),
+      new Date(now).toISOString(),
+      expires,
+    ],
+  );
+  await run(`DELETE FROM ${table.name} WHERE id = ?`, [row.id]);
+  return { row, expires_at: expires };
+}
+
 function moveToTrash(tableName, id) {
   const table = assertTable(tableName);
   return transaction(async () => {
-    const row = await get(`SELECT * FROM ${table.name} WHERE id = ?`, [id]);
-    if (!row) throw new HttpError(404, "Record non trovato");
+    const { expires_at } = await moveToTrashNoLock(table, id);
+    return { success: true, expires_at };
+  });
+}
 
-    const { total, links } = await getLinks(table.name, row.id);
-    if (total > 0) {
-      throw new HttpError(
-        409,
-        `Impossibile eliminare: il record è collegato a ${total} altr${total === 1 ? "o record" : "i record"}.\n${linksMessage(links)}\nElimina o scollega prima i record collegati.`,
-        { code: "COLLEGATO", links, total },
-      );
+// Elimina (sposta nel cestino) PIÙ record della stessa tabella in una volta.
+// Regola invariata: un record si elimina solo se ha 0 collegamenti. Se nella
+// selezione ci sono sia figli sia padre, i figli vengono eliminati per primi
+// (più passate) e il padre si libera; ciò che resta collegato viene saltato.
+function moveManyToTrash(tableName, ids) {
+  const table = assertTable(tableName);
+  const unique = [...new Set(ids.map(Number).filter(Number.isInteger))];
+  if (unique.length === 0) throw new HttpError(400, "Nessun record selezionato");
+  if (unique.length > MAX_BULK)
+    throw new HttpError(400, `Massimo ${MAX_BULK} record per operazione`);
+
+  return transaction(async () => {
+    let pending = unique;
+    const moved = [];
+    let progress = true;
+    while (progress && pending.length > 0) {
+      progress = false;
+      const next = [];
+      for (const id of pending) {
+        const row = await get(`SELECT id FROM ${table.name} WHERE id = ?`, [id]);
+        if (!row) continue; // già inesistente: ignorato
+        const { total } = await getLinks(table.name, id);
+        if (total === 0) {
+          const { row: full } = await moveToTrashNoLock(table, id);
+          moved.push({ id, label: labelOf(table, full) });
+          progress = true;
+        } else {
+          next.push(id);
+        }
+      }
+      pending = next;
     }
-
-    const now = Date.now();
-    await run(
-      `INSERT OR REPLACE INTO cestino (table_name, record_id, label, data, deleted_at, expires_at)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [
-        table.name,
-        row.id,
-        labelOf(table, row),
-        JSON.stringify(row),
-        new Date(now).toISOString(),
-        new Date(now + RETENTION_DAYS * DAY_MS).toISOString(),
-      ],
-    );
-    await run(`DELETE FROM ${table.name} WHERE id = ?`, [row.id]);
+    const blocked = [];
+    for (const id of pending) {
+      const { total, links } = await getLinks(table.name, id);
+      blocked.push({ id, total, links });
+    }
     return {
       success: true,
-      expires_at: new Date(now + RETENTION_DAYS * DAY_MS).toISOString(),
+      requested: unique.length,
+      moved: moved.length,
+      blocked: blocked.length,
+      moved_items: moved,
+      blocked_items: blocked,
     };
   });
 }
@@ -325,47 +377,86 @@ function restoreOne(trashId) {
   });
 }
 
-function restoreAll() {
-  return transaction(async () => {
-    let entries = await all(`SELECT * FROM cestino ORDER BY id ASC`);
-    const total = entries.length;
-    let restored = 0;
-    let progress = true;
+// Ripristina il possibile tra le voci date (padri prima dei figli, più passate).
+// Un figlio è ripristinabile anche se il padre è nella stessa selezione: il padre
+// viene ripristinato prima e sblocca il figlio nella passata successiva.
+async function restoreEntries(entries) {
+  const total = entries.length;
+  let restored = 0;
+  const restoredItems = [];
+  let progress = true;
 
-    // Più passate: ripristinando un "padre" si sbloccano i "figli" nella passata dopo.
-    while (progress && entries.length > 0) {
-      progress = false;
-      const remaining = [];
-      for (const entry of entries) {
-        const check = await checkRestorable(entry);
-        if (check.restorable) {
-          await restoreEntryNoLock(entry);
-          restored++;
-          progress = true;
-        } else {
-          remaining.push(entry);
-        }
-      }
-      entries = remaining;
-    }
-
-    const skippedDetails = [];
+  while (progress && entries.length > 0) {
+    progress = false;
+    const remaining = [];
     for (const entry of entries) {
       const check = await checkRestorable(entry);
-      skippedDetails.push({
-        table: entry.table_name,
-        table_label: tableLabel(entry.table_name),
-        record_id: entry.record_id,
-        motivo: check.motivo,
-      });
+      if (check.restorable) {
+        await restoreEntryNoLock(entry);
+        restored++;
+        restoredItems.push({
+          table: entry.table_name,
+          table_label: tableLabel(entry.table_name),
+          record_id: entry.record_id,
+          label: entry.label,
+        });
+        progress = true;
+      } else {
+        remaining.push(entry);
+      }
     }
-    return {
-      total,
-      restored,
-      skipped: entries.length,
-      skipped_details: skippedDetails,
-    };
+    entries = remaining;
+  }
+
+  const skippedDetails = [];
+  for (const entry of entries) {
+    const check = await checkRestorable(entry);
+    skippedDetails.push({
+      id: entry.id,
+      table: entry.table_name,
+      table_label: tableLabel(entry.table_name),
+      record_id: entry.record_id,
+      label: entry.label,
+      motivo: check.motivo,
+    });
+  }
+  return {
+    total,
+    restored,
+    skipped: entries.length,
+    restored_items: restoredItems,
+    skipped_details: skippedDetails,
+  };
+}
+
+function restoreAll() {
+  return transaction(async () =>
+    restoreEntries(await all(`SELECT * FROM cestino ORDER BY id ASC`)),
+  );
+}
+
+// Ripristina SOLO gli elementi selezionati (quelli che si possono).
+function restoreMany(trashIds) {
+  const ids = normalizeIds(trashIds);
+  return transaction(async () => {
+    const entries = await all(
+      `SELECT * FROM cestino WHERE id IN (${ids.map(() => "?").join(",")}) ORDER BY id ASC`,
+      ids,
+    );
+    if (entries.length === 0)
+      throw new HttpError(404, "Nessuno degli elementi è più nel cestino");
+    return restoreEntries(entries);
   });
+}
+
+function normalizeIds(list) {
+  const ids = [...new Set((Array.isArray(list) ? list : []).map(Number))].filter(
+    (n) => Number.isInteger(n) && n > 0,
+  );
+  if (ids.length === 0) throw new HttpError(400, "Nessun elemento selezionato");
+  if (ids.length > MAX_BULK)
+    throw new HttpError(400, `Massimo ${MAX_BULK} elementi per operazione`);
+  return ids;
 }
 
 // ---------------------------------------------------------------------------
@@ -378,6 +469,36 @@ function deletePermanently(trashId) {
     const dependents = await countDependentsInTrash(entry);
     await run(`DELETE FROM cestino WHERE id = ?`, [trashId]);
     return { success: true, dipendenti_non_ripristinabili: dependents };
+  });
+}
+
+// Elimina definitivamente più elementi. Restituisce quanti altri record rimasti
+// nel cestino (non selezionati) perdono la possibilità di essere ripristinati.
+function deleteMany(trashIds) {
+  const ids = normalizeIds(trashIds);
+  return transaction(async () => {
+    const entries = await all(
+      `SELECT * FROM cestino WHERE id IN (${ids.map(() => "?").join(",")})`,
+      ids,
+    );
+    let orphaned = 0;
+    for (const entry of entries) {
+      const refs = REFERENCED_BY.get(entry.table_name) || [];
+      for (const { table, field } of refs) {
+        const row = await get(
+          `SELECT COUNT(*) AS c FROM cestino
+            WHERE table_name = ? AND json_extract(data, '$.' || ?) = ?
+              AND id NOT IN (${ids.map(() => "?").join(",")})`,
+          [table.name, field.name, entry.record_id, ...ids],
+        );
+        orphaned += row.c;
+      }
+    }
+    const r = await run(
+      `DELETE FROM cestino WHERE id IN (${ids.map(() => "?").join(",")})`,
+      ids,
+    );
+    return { success: true, deleted: r.changes, dipendenti_non_ripristinabili: orphaned };
   });
 }
 
@@ -478,6 +599,34 @@ async function list({ page = 1, limit = 25, q = "", table = "" } = {}) {
   };
 }
 
+// Riepilogo per la dashboard: totale, ripristinabili, in scadenza, per tabella.
+async function summary() {
+  await purgeExpired();
+  const entries = await all(`SELECT * FROM cestino ORDER BY expires_at ASC`);
+  const now = Date.now();
+  let restorable = 0;
+  let expiringSoon = 0;
+  const byTable = new Map();
+  for (const entry of entries) {
+    const check = await checkRestorable(entry);
+    if (check.restorable) restorable++;
+    if (new Date(entry.expires_at).getTime() - now <= 3 * DAY_MS) expiringSoon++;
+    byTable.set(entry.table_name, (byTable.get(entry.table_name) || 0) + 1);
+  }
+  return {
+    total: entries.length,
+    restorable,
+    not_restorable: entries.length - restorable,
+    expiring_soon: expiringSoon,
+    next_expiry: entries.length ? entries[0].expires_at : null,
+    retention_days: RETENTION_DAYS,
+    by_table: [...byTable.entries()]
+      .map(([table, n]) => ({ table, table_label: tableLabel(table), count: n }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5),
+  };
+}
+
 async function count() {
   await purgeExpired();
   const row = await get(`SELECT COUNT(*) AS total FROM cestino`);
@@ -490,13 +639,17 @@ module.exports = {
   getLinks,
   linksMessage,
   moveToTrash,
+  moveManyToTrash,
   checkRestorable,
   restoreOne,
   restoreAll,
+  restoreMany,
   deletePermanently,
+  deleteMany,
   emptyTrash,
   purgeExpired,
   startPurgeJob,
   list,
   count,
+  summary,
 };

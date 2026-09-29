@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "dati": "node db/seed.js",
     "run_dati": "npm run dati && npm start",
-    "dev_dati": "npm run dati && npm run dev"
+    "dev_dati": "npm run dati && npm run dev",
+    "test": "node tests/cestino.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

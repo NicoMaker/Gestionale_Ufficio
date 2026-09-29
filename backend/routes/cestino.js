@@ -6,7 +6,10 @@ const Trash = require("../db/trash");
  *
  *  GET    /api/cestino                 elenco (?page &limit &q &table)
  *  GET    /api/cestino/count           numero di elementi nel cestino
+ *  GET    /api/cestino/summary         riepilogo per la dashboard
  *  POST   /api/cestino/restore-all     ripristina tutto ciò che è ripristinabile
+ *  POST   /api/cestino/restore-selected  { ids }  ripristina più elementi (quelli che si può)
+ *  POST   /api/cestino/delete-selected   { ids }  elimina definitivamente più elementi
  *  POST   /api/cestino/:id/restore     ripristina un elemento (se i riferimenti esistono)
  *  DELETE /api/cestino/:id             elimina definitivamente un elemento
  *  DELETE /api/cestino                 svuota il cestino
@@ -40,6 +43,21 @@ router.get(
 router.get(
   "/count",
   handle(() => Trash.count()),
+);
+
+router.get(
+  "/summary",
+  handle(() => Trash.summary()),
+);
+
+router.post(
+  "/restore-selected",
+  handle((req) => Trash.restoreMany((req.body || {}).ids)),
+);
+
+router.post(
+  "/delete-selected",
+  handle((req) => Trash.deleteMany((req.body || {}).ids)),
 );
 
 router.post(

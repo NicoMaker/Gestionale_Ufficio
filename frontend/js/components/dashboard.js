@@ -28,11 +28,21 @@ const Dashboard = (() => {
 
     content.innerHTML = `
       <div class="stats-grid" id="stats-grid"></div>
+      <a class="trash-panel" href="#cestino" id="trash-panel" aria-label="Apri il cestino">
+        <div class="trash-panel-icon">${Icons.html("trash")}</div>
+        <div class="trash-panel-body">
+          <h3>Cestino</h3>
+          <p class="muted" id="trash-panel-text">Caricamento…</p>
+          <div class="trash-panel-chips" id="trash-panel-chips"></div>
+        </div>
+        <span class="btn btn-primary trash-panel-cta">Apri il cestino${Icons.html("chevron-right")}</span>
+      </a>
       <div class="groups-grid" id="groups-grid"></div>
     `;
 
     renderGroups(groups, tables, navigate);
     loadStats(tables);
+    loadTrashPanel(navigate);
   }
 
   function renderGroups(groups, tables, navigate) {
@@ -57,6 +67,46 @@ const Dashboard = (() => {
         navigate(a.dataset.route);
       });
     });
+  }
+
+  // Pannello "Cestino": riepilogo e collegamento diretto alla pagina cestino
+  async function loadTrashPanel(navigate) {
+    const panel = document.getElementById("trash-panel");
+    panel.addEventListener("click", (e) => {
+      e.preventDefault();
+      navigate("cestino");
+    });
+    const text = document.getElementById("trash-panel-text");
+    const chips = document.getElementById("trash-panel-chips");
+    try {
+      const s = await API.trashSummary();
+      if (s.total === 0) {
+        text.textContent = `Il cestino è vuoto. I record eliminati restano qui ${s.retention_days} giorni e si possono ripristinare.`;
+        return;
+      }
+      const next = s.next_expiry
+        ? new Date(s.next_expiry).toLocaleDateString("it-IT", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })
+        : "—";
+      text.textContent = `${s.total} element${s.total === 1 ? "o" : "i"} in attesa — eliminazione definitiva automatica dopo ${s.retention_days} giorni (prossima: ${next}).`;
+      chips.innerHTML = [
+        `<span class="badge">${s.restorable} ripristinabili</span>`,
+        s.not_restorable
+          ? `<span class="badge danger">${s.not_restorable} non ripristinabili</span>`
+          : "",
+        s.expiring_soon
+          ? `<span class="badge warn">${s.expiring_soon} in scadenza (≤ 3 giorni)</span>`
+          : "",
+        ...s.by_table.map(
+          (t) => `<span class="badge neutral">${t.table_label}: ${t.count}</span>`,
+        ),
+      ].join("");
+    } catch (_) {
+      text.textContent = "Impossibile leggere lo stato del cestino.";
+    }
   }
 
   async function loadStats(tables) {
