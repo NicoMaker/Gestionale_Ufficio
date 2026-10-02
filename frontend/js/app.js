@@ -41,6 +41,7 @@
     if (meta.trash) AppConfig.retentionDays = meta.trash.retentionDays;
 
     Sidebar.init(meta, navigate);
+    CommandPalette.init(meta, navigate);
 
     window.addEventListener("hashchange", () =>
       navigate(routeFromHash(), false),

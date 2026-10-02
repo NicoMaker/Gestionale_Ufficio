@@ -40,6 +40,9 @@ const Dashboard = (() => {
         <span class="hero-date">${today}</span>
         <h2>${greet} 👋</h2>
         <p>Tutto il tuo ufficio in un unico posto: anagrafiche, magazzino, vendite, contabilità e molto altro.</p>
+        <div class="hero-actions">
+          <a href="#clienti">Clienti</a><a href="#prodotti">Prodotti</a><a href="#ordini_vendita">Ordini</a><a href="#fornitori">Fornitori</a>
+        </div>
       </section>
       <div class="stats-grid" id="stats-grid"></div>
       <a class="trash-panel" href="#cestino" id="trash-panel" aria-label="Apri il cestino">
@@ -66,7 +69,7 @@ const Dashboard = (() => {
         const groupTables = tables.filter((t) => t.group === group.id);
         if (groupTables.length === 0) return "";
         return `
-        <div class="group-card">
+        <div class="group-card" style="--h:${(groups.indexOf(group) * 47 + 235) % 360}">
           <h3><span class="group-card-icon">${Icons.html(group.icon)}</span>${group.label}</h3>
           <ul>
             ${groupTables.map((t) => `<li><a href="#" data-route="${t.name}">${t.label}</a></li>`).join("")}
@@ -124,6 +127,16 @@ const Dashboard = (() => {
     }
   }
 
+  function countUp(el, to) {
+    const t0 = performance.now();
+    const step = (t) => {
+      const p = Math.min((t - t0) / 900, 1);
+      el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))).toLocaleString("it-IT");
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
   async function loadStats(tables) {
     const statsGrid = document.getElementById("stats-grid");
     const wanted = tables.filter((t) => HIGHLIGHT_TABLES.includes(t.name));
@@ -157,7 +170,7 @@ const Dashboard = (() => {
           const card = statsGrid.querySelector(
             `[data-stat="${t.name}"] .stat-value`,
           );
-          if (card) card.textContent = result.total;
+          if (card) countUp(card, result.total);
         } catch (_) {
           const card = statsGrid.querySelector(
             `[data-stat="${t.name}"] .stat-value`,
