@@ -28,7 +28,8 @@ const Dashboard = (() => {
 
     const now = new Date();
     const h = now.getHours();
-    const greet = h < 13 ? "Buongiorno" : h < 18 ? "Buon pomeriggio" : "Buonasera";
+    const greet =
+      h < 13 ? "Buongiorno" : h < 18 ? "Buon pomeriggio" : "Buonasera";
     const today = now.toLocaleDateString("it-IT", {
       weekday: "long",
       day: "numeric",
@@ -131,7 +132,9 @@ const Dashboard = (() => {
     const t0 = performance.now();
     const step = (t) => {
       const p = Math.min((t - t0) / 900, 1);
-      el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))).toLocaleString("it-IT");
+      el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))).toLocaleString(
+        "it-IT",
+      );
       if (p < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);

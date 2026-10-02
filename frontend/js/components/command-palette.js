@@ -3,7 +3,13 @@
  * Frecce per scorrere, Invio per aprire, Esc per chiudere.
  */
 const CommandPalette = (() => {
-  let overlay, input, list, items = [], shown = [], idx = 0, onNavigate;
+  let overlay,
+    input,
+    list,
+    items = [],
+    shown = [],
+    idx = 0,
+    onNavigate;
 
   function init(meta, navigate) {
     onNavigate = navigate;
@@ -29,7 +35,10 @@ const CommandPalette = (() => {
     input = overlay.querySelector("input");
     list = overlay.querySelector("ul");
 
-    overlay.addEventListener("mousedown", (e) => e.target === overlay && close());
+    overlay.addEventListener(
+      "mousedown",
+      (e) => e.target === overlay && close(),
+    );
     input.addEventListener("input", () => filter(input.value));
     input.addEventListener("keydown", (e) => {
       if (e.key === "ArrowDown") move(1, e);
@@ -53,22 +62,41 @@ const CommandPalette = (() => {
   }
   function filter(q) {
     q = q.trim().toLowerCase();
-    shown = items.filter((i) => !q || (i.label + " " + i.hint).toLowerCase().includes(q)).slice(0, 12);
+    shown = items
+      .filter((i) => !q || (i.label + " " + i.hint).toLowerCase().includes(q))
+      .slice(0, 12);
     idx = 0;
     paint();
   }
   function paint() {
     list.innerHTML = shown.length
-      ? shown.map((i, n) => `<li class="${n === idx ? "on" : ""}" data-n="${n}"><span>${i.label}</span><small>${i.hint}</small></li>`).join("")
+      ? shown
+          .map(
+            (i, n) =>
+              `<li class="${n === idx ? "on" : ""}" data-n="${n}"><span>${i.label}</span><small>${i.hint}</small></li>`,
+          )
+          .join("")
       : '<li class="none">Nessun risultato</li>';
     list.querySelector(".on")?.scrollIntoView({ block: "nearest" });
-    list.querySelectorAll("li[data-n]").forEach((li) =>
-      li.addEventListener("click", () => go(shown[li.dataset.n].route)),
-    );
+    list
+      .querySelectorAll("li[data-n]")
+      .forEach((li) =>
+        li.addEventListener("click", () => go(shown[li.dataset.n].route)),
+      );
   }
-  function go(route) { close(); onNavigate(route); }
-  function open() { overlay.hidden = false; input.value = ""; filter(""); input.focus(); }
-  function close() { overlay.hidden = true; }
+  function go(route) {
+    close();
+    onNavigate(route);
+  }
+  function open() {
+    overlay.hidden = false;
+    input.value = "";
+    filter("");
+    input.focus();
+  }
+  function close() {
+    overlay.hidden = true;
+  }
 
   return { init };
 })();
