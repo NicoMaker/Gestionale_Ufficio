@@ -26,7 +26,21 @@ const Dashboard = (() => {
     searchInput.style.display = "none";
     btnNew.style.display = "none";
 
+    const now = new Date();
+    const h = now.getHours();
+    const greet = h < 13 ? "Buongiorno" : h < 18 ? "Buon pomeriggio" : "Buonasera";
+    const today = now.toLocaleDateString("it-IT", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+
     content.innerHTML = `
+      <section class="hero">
+        <span class="hero-date">${today}</span>
+        <h2>${greet} 👋</h2>
+        <p>Tutto il tuo ufficio in un unico posto: anagrafiche, magazzino, vendite, contabilità e molto altro.</p>
+      </section>
       <div class="stats-grid" id="stats-grid"></div>
       <a class="trash-panel" href="#cestino" id="trash-panel" aria-label="Apri il cestino">
         <div class="trash-panel-icon">${Icons.html("trash")}</div>

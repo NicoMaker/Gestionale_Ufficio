@@ -30,6 +30,22 @@ const Sidebar = (() => {
   function render(groups, tables) {
     navEl.innerHTML = "";
 
+    // Filtro rapido delle voci di menu
+    const filter = document.createElement("div");
+    filter.className = "nav-filter";
+    filter.innerHTML =
+      '<input type="search" placeholder="Filtra sezioni…" aria-label="Filtra sezioni" />';
+    filter.querySelector("input").addEventListener("input", (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      navEl.querySelectorAll(".nav-item[data-group]").forEach((el) => {
+        el.classList.toggle(
+          "is-hidden",
+          q !== "" && !el.textContent.toLowerCase().includes(q),
+        );
+      });
+    });
+    navEl.appendChild(filter);
+
     // Voce Dashboard sempre in cima
     const dashItem = document.createElement("button");
     dashItem.className = "nav-item";
@@ -45,12 +61,19 @@ const Sidebar = (() => {
       const title = document.createElement("div");
       title.className = "nav-group-title";
       title.innerHTML = `<span class="nav-group-icon">${Icons.html(group.icon)}</span><span>${group.label}</span>`;
+      title.addEventListener("click", () => {
+        const collapsed = title.classList.toggle("collapsed");
+        navEl
+          .querySelectorAll(`.nav-item[data-group="${group.id}"]`)
+          .forEach((el) => el.classList.toggle("is-hidden", collapsed));
+      });
       navEl.appendChild(title);
 
       groupTables.forEach((table) => {
         const item = document.createElement("button");
         item.className = "nav-item";
         item.dataset.route = table.name;
+        item.dataset.group = group.id;
         item.innerHTML = `<span class="nav-dot"></span><span>${table.label}</span>`;
         item.addEventListener("click", () => onNavigate(table.name));
         navEl.appendChild(item);
