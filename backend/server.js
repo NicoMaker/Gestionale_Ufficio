@@ -1,4 +1,6 @@
 const path = require("path");
+const os = require("os");
+const https = require("https");
 const express = require("express");
 const cors = require("cors");
 const { initDatabase, db } = require("./db/init");
@@ -49,19 +51,50 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Errore interno del server" });
 });
 
+// IP locale (prima interfaccia IPv4 non interna)
+function getLocalIP() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name] || []) {
+      if (iface.family === "IPv4" && !iface.internal) return iface.address;
+    }
+  }
+  return "127.0.0.1";
+}
+
+// IP pubblico (richiesta esterna con timeout; se fallisce non blocca l'avvio)
+function getPublicIP() {
+  return new Promise((resolve) => {
+    const req = https.get("https://api.ipify.org", { timeout: 3000 }, (res) => {
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => resolve(data.trim() || "non disponibile"));
+    });
+    req.on("timeout", () => {
+      req.destroy();
+      resolve("non disponibile");
+    });
+    req.on("error", () => resolve("non disponibile"));
+  });
+}
+
 initDatabase()
-  .then(() => {
+  .then(async () => {
     // Pulizia automatica del cestino (all'avvio e poi ogni ora)
     Trash.startPurgeJob();
 
-    const server = app.listen(PORT, () => {
-      console.log("==================================================");
-      console.log("  GESTIONALE avviato correttamente");
-      console.log(`  Apri il browser su: http://localhost:${PORT}`);
+    const localIP = getLocalIP();
+    const publicIP = await getPublicIP();
+
+    const server = app.listen(PORT, "0.0.0.0", () => {
+      console.log(`\n🚀 Server avviato con successo!`);
+      console.log(`🌐 IP Pubblico: http://${publicIP}:${PORT}`);
+      console.log(`🏠 IP Locale:   http://${localIP}:${PORT}`);
+      console.log(`📍 Localhost:  http://localhost:${PORT}`);
+      console.log(`\n--------------------------------------`);
       console.log(
-        `  Cestino: eliminazione definitiva dopo ${Trash.RETENTION_DAYS} giorni`,
+        `⏰ Cron cestino attivo: eliminazione automatica ogni notte alle 00:00`,
       );
-      console.log("==================================================");
     });
 
     // Chiusura pulita (Ctrl+C / deploy)
